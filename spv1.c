@@ -24,11 +24,11 @@ cp_t** malloc_arr_cache_pages() {
     return arr;
 }
 
-cp_t** mmap_arr_cache_pages() {
+cp_t* mmap_arr_cache_pages() {
     //cp_t** arr = mmap(NULL, 100 * sizeof(cp_t), PROT_READ | PROT_WRITE,
     //                  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-    void* arr = mmap(NULL, N_PAGES * sizeof(cp_t), PROT_READ | PROT_WRITE,
+    cp_t* arr = mmap(NULL, N_PAGES * sizeof(cp_t), PROT_READ | PROT_WRITE,
                       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     //void* arr = arr - N_PAGES * sizeof(cp_t);
     printf("arr = 0x%p\n", arr);
@@ -39,7 +39,7 @@ cp_t** mmap_arr_cache_pages() {
     //cache_page->id = 1;
     //printf("cache id = %d\n", cache_page->id);
     for(int i = 0; i < N_PAGES; i++) {
-        cp_t* cache_page = arr + i*sizeof(cp_t);
+        cp_t* cache_page = arr + i;//*sizeof(cp_t);
         cache_page->id = i;
         //printf("assigning i=%d\n",i);
         //arr[i]->id = i;
@@ -59,11 +59,11 @@ void print_malloc_arr_vals(cp_t** arr) {
 
 }
 
-void print_mmap_arr_vals(cp_t** arr) {
+void print_mmap_arr_vals(cp_t* arr) {
 
     for(int i = 0; i < N_PAGES; i++) {
-        cp_t* cache_page = arr + i*sizeof(cp_t)/sizeof(arr);
-        //cp_t* cache_page = arr[i];
+        //cp_t* cache_page = arr + i;
+        cp_t* cache_page = &arr[i];
         printf("%p\tval %d = ", cache_page, i);
         printf("%d", cache_page->id);
         printf("\n");
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     //cp_t** arr = malloc_arr_cache_pages();
     //free_arr(arr);
 
-    cp_t** arr = mmap_arr_cache_pages();
+    cp_t* arr = mmap_arr_cache_pages();
     printf("sizeof(arr) = %ld\n", sizeof(arr));
     print_mmap_arr_vals(arr);
 
