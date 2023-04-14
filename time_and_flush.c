@@ -48,7 +48,7 @@ static inline void reload(cp_t *arr, int n_pages) {
 
         printf("i=%d\ttime = %ld cycles\n", i, t);
 
-        if(t < 60) printf("\t\t\t\tCACHE\n");
+        if(t < 75) printf("\t\t\t\tCACHE\n");
 
     }
 
