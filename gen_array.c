@@ -6,7 +6,7 @@
 #include <sys/mman.h>
 
 #define PAGESIZE 4096
-#define N_PAGES 100
+#define N_PAGES 10000
 
 typedef struct cache_page {
     int id __attribute__(( aligned(PAGESIZE) ));
@@ -48,9 +48,6 @@ void print_mmap_arr_vals(cp_t* arr) {
 
     for(int i = 0; i < N_PAGES; i++) {
         cp_t* cache_page = &arr[i];
-        printf("%p\tval %d = ", cache_page, i);
-        printf("%d", cache_page->id);
-        printf("\n");
     }
 }
 

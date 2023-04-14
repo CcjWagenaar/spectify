@@ -46,10 +46,11 @@ static inline void reload(cp_t *arr, int n_pages) {
 
         time_t t = time_mem_load(&arr[i]);
 
-        printf("i=%d\ttime = %ld cycles\n", i, t);
+        if (t < 175)
+            printf("0x%p\ti=%d  (%d)\ttime = %ld cycles\n", &arr[i], i, arr[i].id, t);
 
-        if(t < 75) printf("\t\t\t\tCACHE\n");
-
+        if      (t < 75)  printf("\t\t\t\t\t\t\t\tCACHE HIT\n");
+        else if (t < 175) printf("\t\t\t\t\t\t\t\tmss?\n");
     }
 
 }
