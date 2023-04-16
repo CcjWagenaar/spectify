@@ -12,7 +12,6 @@ int main(int argc, char* argv[]) {
     //free_arr(arr);
 
     cp_t* arr = mmap_arr_cache_pages();
-    printf("sizeof(arr) = %ld\n", sizeof(arr));
     print_mmap_arr_vals(arr);
 
     //volatile int n_pages = 40;
@@ -32,23 +31,24 @@ int main(int argc, char* argv[]) {
     int *secret_data = malloc(N_PAGES * sizeof(int));
     for(int i = 0; i < N_PAGES; i++) { secret_data[i] = i; }
     secret_data[N_PAGES-1-1] = N_PAGES-1;
-    for(int i = 0; i < N_PAGES; i++) { printf("secret[%d]:\t%d\n", i, secret_data[i]); }
+    //for(int i = 0; i < N_PAGES; i++) { printf("secret[%d]:\t%d\n", i, secret_data[i]); }
 
     int x;
     volatile cp_t cp;
     for(int i = 0; i < N_PAGES; i++) {
         printf("i = %d\n",i);
         flush((void*)&accessible_pages);
+        //__sync_synchronize();
         if (i < accessible_pages) {
             x = secret_data[i];
             cp = arr[x];
-            printf("%d\taccessed cp=%d w val %d\n", i, x, cp.id);
+            //printf("%d\taccessed cp=%d w val %d\n", i, x, cp.id);
         }
         //__sync_synchronize();
-        if(i==N_PAGES-5) {
+        if(i==N_PAGES-3) {
             printf("flushing array...\n");
             flush_arr((void*)arr);
-            __sync_synchronize();
+            //__sync_synchronize();
         }
         //__sync_synchronize();
     }
