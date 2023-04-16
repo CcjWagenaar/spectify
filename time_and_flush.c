@@ -27,7 +27,6 @@ static inline int time_mem_load(void *addr) {
     return time;
 }
 
-//NOTE: not sure if "static" works here
 static inline void flush(char *addr) {
     asm __volatile__ ("mfence\nclflush 0(%0)" : : "r" (addr) :);
 }
