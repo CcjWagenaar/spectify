@@ -6,6 +6,9 @@
 
 #include "gen_array.c"
 
+#define CACHE_HIT 75
+#define MAYBE_CACHE_HIT 175
+
 //NOTE: not sure if "static" works here
 static inline int time_mem_load(void *addr) {
     volatile unsigned long time;
@@ -39,19 +42,25 @@ void flush_arr(cp_t* arr) {
 
 }
 
-static inline void reload(cp_t *arr, int n_pages) {
+static inline int* reload(cp_t *arr) {
+    int* times = malloc(N_PAGES * sizeof(int));
 
-    for(int i = 0; i < n_pages; i++) {
+    for(int i = 0; i < N_PAGES; i++) {
 
-        time_t t = time_mem_load(&arr[i]);
+        int t = (int)time_mem_load(&arr[i]);
+        times[i] = t;
 
-        if (t < 175)
-            printf("0x%p\ti=%d  (%d)\ttime = %ld cycles\n", &arr[i], i, arr[i].id, t);
+        if (t < MAYBE_CACHE_HIT) {
+            printf("0x%p\ti=%d  (%d)\ttime = %d cycles\t", &arr[i], i, arr[i].id, t);
 
-        if      (t < 75)  printf("\t\t\t\t\t\t\t\tCACHE HIT\n");
-        else if (t < 175) printf("\t\t\t\t\t\t\t\tmss?\n");
+            if (t < CACHE_HIT)  printf("CACHE HIT\n");
+            else                printf("maybe hit\n");
+
+        }
     }
 
+
+    return times;
 }
 
 #endif  //TIME_AND_FLUSH
