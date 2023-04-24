@@ -51,7 +51,7 @@ static inline int* reload(cp_t *arr) {
         times[i] = t;
 
         if (t < MAYBE_CACHE_HIT) {
-            printf("0x%p\ti=%d  (%d)\ttime = %d cycles\t", &arr[i], i, arr[i].id, t);
+            printf("0x%p\ti=%d  (%c)\ttime = %d\t", &arr[i], i, arr[i].id, t);
 
             if (t < CACHE_HIT)  printf("CACHE HIT\n");
             else                printf("maybe hit\n");

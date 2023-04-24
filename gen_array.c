@@ -6,7 +6,7 @@
 #include <sys/mman.h>
 
 #define PAGESIZE 4096
-#define N_PAGES 10
+#define N_PAGES 256
 
 typedef struct cache_page {
     int id __attribute__(( aligned(PAGESIZE) ));
