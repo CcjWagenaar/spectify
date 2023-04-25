@@ -7,6 +7,7 @@
 
 #define PAGESIZE 4096
 #define N_PAGES 256
+#define TEST2 2
 
 typedef struct cache_page {
     int id __attribute__(( aligned(PAGESIZE) ));
