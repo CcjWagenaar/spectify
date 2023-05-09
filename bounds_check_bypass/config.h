@@ -1,6 +1,7 @@
 #ifndef CONFIG
 #define CONFIG
 
+/*
 #define PAGESIZE 4096
 #define N_PAGES 256
 #define REPETITIONS 10
@@ -12,8 +13,5 @@ int accessible = 100;
 int secret_size = 25;
 unsigned char* data = "notasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretzhis is a secret message";
 
-typedef struct cache_page {
-    int id __attribute__(( aligned(PAGESIZE) ));
-} cp_t;
-
+ */
 #endif //CONFIG

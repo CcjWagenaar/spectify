@@ -1,7 +1,8 @@
 #ifndef PRINT_RESULTS
 #define PRINT_RESULTS
 
-#include "config.h"
+//#include "../bounds_check_bypass/config.h"
+#include "header.h"
 /* USES
  *  REPETITIONS
  *  secret_size
@@ -13,7 +14,7 @@ int cmpfunc (const void * a, const void * b) {
     return ( *(int*)a - *(int*)b );
 }
 
-void print_results(int*** results) {
+void print_results(int*** results, int REPETITIONS, int secret_size, int N_PAGES, int CACHE_HIT) {
 
     for(int r = 0; r < REPETITIONS; r++) {
         printf("Repetition %d\n", r);

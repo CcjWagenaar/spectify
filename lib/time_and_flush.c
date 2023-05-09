@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "config.h"
+#include "header.h"
+//#include "../bounds_check_bypass/config.h"
 /* USES
  *  N_PAGES
+ *  CACHE_HIT
+ *  MAYBE_CACHE_HIT
  */
 
 
@@ -35,7 +38,7 @@ static inline void flush(char *addr) {
     asm __volatile__ ("mfence\nclflush 0(%0)" : : "r" (addr) :);
 }
 
-void flush_arr(cp_t* arr) {
+void flush_arr(cp_t* arr, int N_PAGES) {
 
     for(int i = 0; i < N_PAGES; i++) {
         flush((void*)&arr[i]);
@@ -43,7 +46,7 @@ void flush_arr(cp_t* arr) {
 
 }
 
-static inline int* reload(cp_t *arr) {
+static inline int* reload(cp_t *arr, int N_PAGES, int CACHE_HIT, int MAYBE_CACHE_HIT) {
     int* times = malloc(N_PAGES * sizeof(int));
 
     for(int i = 0; i < N_PAGES; i++) {
