@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 
-#define PAGESIZE 4096
-#define N_PAGES 256
+#include "config.h"
+
 
 typedef struct cache_page {
     int id __attribute__(( aligned(PAGESIZE) ));
@@ -30,6 +30,24 @@ void print_mmap_arr_vals(cp_t* arr) {
 
     for(int i = 0; i < N_PAGES; i++) {
         cp_t* cache_page = &arr[i];
+    }
+}
+
+int*** alloc_results() {
+    int*** results = malloc(REPETITIONS * sizeof(void*)); //results[REPETITIONS][secret_size][N_PAGES]ints
+
+    for(int r = 0; r < REPETITIONS; r++) {
+        results[r] = malloc(secret_size * sizeof(void*));
+        for (int s = 0; s < secret_size; s++) results[r][s] = malloc(N_PAGES * sizeof(int));
+    }
+
+    return results;
+}
+
+void free_results(int*** results) {
+    for(int r = 0; r < REPETITIONS; r++) {
+        for(int s = 0; s < secret_size; s++) free(results[r][s]);
+        free(results[r]);
     }
 }
 

@@ -4,10 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "gen_array.c"
-
-#define CACHE_HIT 75
-#define MAYBE_CACHE_HIT 175
+#include "config.h"
 
 //NOTE: not sure if "static" works here
 static inline int time_mem_load(void *addr) {
