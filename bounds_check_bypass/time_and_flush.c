@@ -5,6 +5,10 @@
 #include <stdlib.h>
 
 #include "config.h"
+/* USES
+ *  N_PAGES
+ */
+
 
 //NOTE: not sure if "static" works here
 static inline int time_mem_load(void *addr) {

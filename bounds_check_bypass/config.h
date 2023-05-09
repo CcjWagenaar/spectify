@@ -12,4 +12,8 @@ int accessible = 100;
 int secret_size = 25;
 unsigned char* data = "notasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretzhis is a secret message";
 
+typedef struct cache_page {
+    int id __attribute__(( aligned(PAGESIZE) ));
+} cp_t;
+
 #endif //CONFIG

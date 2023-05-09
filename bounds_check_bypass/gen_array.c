@@ -6,11 +6,11 @@
 #include <sys/mman.h>
 
 #include "config.h"
-
-
-typedef struct cache_page {
-    int id __attribute__(( aligned(PAGESIZE) ));
-} cp_t;
+/* USES
+ *  REPETITIONS
+ *  secret_size
+ *  N_PAGES
+ */
 
 cp_t* mmap_arr_cache_pages() {
     cp_t* arr = mmap(NULL, N_PAGES * sizeof(cp_t), PROT_READ | PROT_WRITE,
