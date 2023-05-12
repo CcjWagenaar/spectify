@@ -6,12 +6,6 @@
 #include <sys/mman.h>
 
 #include "header.h"
-//#include "../bounds_check_bypass/config.h"
-/* USES
- *  REPETITIONS
- *  secret_size
- *  N_PAGES
- */
 
 cp_t* mmap_arr_cache_pages(int N_PAGES) {
     cp_t* arr = mmap(NULL, N_PAGES * sizeof(cp_t), PROT_READ | PROT_WRITE,

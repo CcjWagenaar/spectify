@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
-#include "config.h"
 #include "../lib/gen_array.c"
 #include "../lib/time_and_flush.c"
 #include "../lib/print_results.c"
@@ -10,7 +8,7 @@
 
 #define N_PAGES 256
 #define REPETITIONS 10
-#define CACHE_HIT 75
+#define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
 
 const int data_size = 35;
@@ -47,9 +45,10 @@ int* spv1(int index) {
     //Misstrain branch predictor, access out of bounds on last call
     for(int i = 0; i < n_accesses; i++) {
         victim_func(accesses[i], arr, data);
-        __sync_synchronize();
-        flush((void*)&arr[data[i]]);
 
+        //ensures completion before flushing. bar prevents speculative access from being flushed
+        __sync_synchronize();
+        flush((void*)&arr[data[i]]);    //TODO: make this sensible
     }
 
     //make sure previous loop finishes execution

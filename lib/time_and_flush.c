@@ -5,12 +5,6 @@
 #include <stdlib.h>
 
 #include "header.h"
-//#include "../bounds_check_bypass/config.h"
-/* USES
- *  N_PAGES
- *  CACHE_HIT
- *  MAYBE_CACHE_HIT
- */
 
 
 //NOTE: not sure if "static" works here
