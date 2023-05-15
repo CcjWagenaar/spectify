@@ -7,6 +7,10 @@
 # Unignore all dirs
 !*/
 
+# Unignore all makefiles
+!Makefile
+!/Makefile
+
 ### Above combination will ignore all files without extension ###
 *.o
 

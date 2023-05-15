@@ -37,7 +37,7 @@ void print_results(int*** results, int REPETITIONS, int secret_size, int N_PAGES
         }
     }
 
-    for(int s = 0; s < secret_size; s++) {
+    /*for(int s = 0; s < secret_size; s++) {
         printf("\n\nCHAR %d\n", s);
         for(int p = 0; p < N_PAGES; p++) {
             int t = character_medians[s][p];

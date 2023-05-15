@@ -28,8 +28,12 @@ static inline int time_mem_load(void *addr) {
     return time;
 }
 
-static inline void flush(char *addr) {
+extern inline void flush(char *addr) {
     asm __volatile__ ("mfence\nclflush 0(%0)" : : "r" (addr) :);
+}
+
+extern inline void cpuid() {
+    asm volatile ("cpuid\n":::);
 }
 
 void flush_arr(cp_t* arr, int N_PAGES) {
