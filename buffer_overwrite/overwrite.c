@@ -13,18 +13,7 @@
 #define SECRET_SIZE 1
 #define N_TRAINING 10
 
-/*
- * Variables required in Cache
- *  user_idx
- *  buf
- *  user_char_copy
- *  user_passwd
- *  secret
- *  super_secret
- *
- * Variables requried in mem:
- *  buf_size
- */
+
 
 typedef struct cache_vars {
     char user_idx;
@@ -43,6 +32,18 @@ int overwrite_index = 255;//511;//1023;//2047;//4095;//-1;          //OPTION 1: 
 int          buf_size __attribute__ ((aligned (256))) = BUF_SIZE;
 cache_vars_t cache    __attribute__ ((aligned (256)));
 
+/*
+ * Variables required in cache:
+ *  user_idx
+ *  buf
+ *  user_char_copy
+ *  user_passwd
+ *  secret
+ *  super_secret
+ *
+ * Variables requried in mem:
+ *  buf_size
+ */
 void check_passwd(int user_idx, char user_char, char user_passwd, cp_t* flush_reload_arr, char super_secret) {
 
     cache.user_idx = user_idx;

@@ -44,7 +44,8 @@ void print_results(int*** results, int REPETITIONS, int secret_size, int N_PAGES
     }
     printf("\n\n");//*/
 
-    char secret_message[secret_size];
+    char secret_message[secret_size+1];
+    secret_message[secret_size] = 0;
     for(int s = 0; s < secret_size; s++) {
 
         int index_of_min = 0;
