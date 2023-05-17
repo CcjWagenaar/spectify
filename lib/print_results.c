@@ -3,6 +3,18 @@
 
 #include "header.h"
 
+void cache_print(unsigned char* cache, int size) {
+    printf("\nsizeof cache_struct = %d\n", size);
+    for(int i = 0; i < size + 4; i++) {
+
+        printf("0x%02x\t", cache[i]);
+
+        if(i!=0 && i%4==3) printf("\n");
+    }
+    printf("\n");
+}
+
+
 int cmpfunc (const void * a, const void * b) {
     return ( *(int*)a - *(int*)b );
 }

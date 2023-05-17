@@ -36,6 +36,32 @@ extern inline void cpuid() {
     asm volatile ("cpuid\n":::);
 }
 
+extern inline void nop_20() {
+    asm volatile (
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            "nop\n"
+            :::
+            );
+}
+
 void flush_arr(cp_t* arr, int N_PAGES) {
 
     for(int i = 0; i < N_PAGES; i++) {
