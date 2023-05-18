@@ -6,12 +6,12 @@
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 1
+#define REPETITIONS 10
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
-#define BUF_SIZE 13
 #define SECRET_SIZE 1
 #define N_TRAINING 10
+#define BUF_SIZE 13
 
 
 
@@ -165,4 +165,5 @@ int main(int argc, char** argv) {
     cache.buf[overwrite_index] = 0xdd;
     cache_print(&cache, sizeof(cache_vars_t));
 
+    return 0;
 }

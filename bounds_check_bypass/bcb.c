@@ -6,7 +6,7 @@
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 10
+#define REPETITIONS 100
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
 #define DATA_SIZE (accessible + secret_size)
@@ -14,7 +14,6 @@
 #define DATA "notasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretzhis is a secret message"
 
 int accessible __attribute__ ((aligned (256))) = 100;
-
 
 /*
  * Variables required in cache:
@@ -89,4 +88,6 @@ int main(int argc, char* argv[]) {
     print_results(results, REPETITIONS, SECRET_SIZE, N_PAGES, CACHE_HIT);
 
     free_results(results, REPETITIONS, SECRET_SIZE);
+
+    return 0;
 }
