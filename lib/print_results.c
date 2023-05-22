@@ -29,7 +29,7 @@ void print_results(int*** results, int REPETITIONS, int secret_size, int N_PAGES
                 times_for_char[r] = results[r][s][p];
             }
             qsort(times_for_char, REPETITIONS ,sizeof(int),cmpfunc);
-            character_medians[s][p] = times_for_char[REPETITIONS/10];
+            character_medians[s][p] = times_for_char[REPETITIONS/2];
         }
     }
 
