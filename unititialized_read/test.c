@@ -1,4 +1,4 @@
-#include <stdio.h>
+/*#include <stdio.h>
 
 
 #define I_INDEX 0
@@ -44,4 +44,4 @@ void use_after_free(free_index, secret_index) {
     cp_t cp = leak_array[SECRET[*i]];
 
 
-}
+}*/

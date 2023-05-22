@@ -6,7 +6,7 @@
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 100
+#define REPETITIONS 3
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
 #define SECRET_SIZE 8
@@ -58,8 +58,14 @@ void victim_func(int free_index, int secret_index) {
 
 
     /*if(!freed[0])*/ //attack_func(secret_index);
-    int* i_dupe = malloc(sizeof(int));
-    *i_dupe = secret_index;
+    u_int32_t malloc_attempts = 0;
+    int* i_dupe = NULL;
+    while(free_index==0 && i_dupe != i && malloc_attempts < 10) {
+        i_dupe = malloc(sizeof(int));
+        printf("idup%d: %p\t", malloc_attempts, i_dupe);
+        *i_dupe = secret_index;
+        malloc_attempts++;
+    }
     //END ATTACK FUNC
 
     cpuid();
@@ -72,7 +78,7 @@ void victim_func(int free_index, int secret_index) {
     }
 
     cpuid();
-    if(free_index==0) printf("i_dupe: %p (%d) i:%d\n", i_dupe, *i_dupe, *i);
+    if(free_index==0) printf("dup_v:%d\ti_v:%d\n", *i_dupe, *i);
     if(!freed[0]) free(i);
     if(!freed[1]) free(j);
     if(!freed[2]) free(k);
