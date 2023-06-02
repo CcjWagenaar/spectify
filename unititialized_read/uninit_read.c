@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
         printf("\nREPETITION %d\n", r);
         for (int s = 0; s < SECRET_SIZE; s++) {
             results[r][s] = prepare(s);
-            __sync_synchronize();
+            cpuid();
         }
     }
 

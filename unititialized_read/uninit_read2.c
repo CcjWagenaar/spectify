@@ -19,7 +19,7 @@
 
 
 //int* i_global;
-unsigned char* i_global;
+unsigned char* k_global;
 //int* j_global;
 //int* k_global;
 cp_t* flush_reload_arr;
@@ -40,21 +40,21 @@ void victim_subfunc(unsigned char* i, int secret_index) {
 //attack:   initialize_index=2 print_index={iterate through array i}
 void victim_main_func(int initialize_index, int secret_index) {
 
-    unsigned char* i = malloc(SECRET_SIZE);
-    unsigned char* j = malloc(SECRET_SIZE);
     unsigned char* k = malloc(SECRET_SIZE);
-    unsigned char** i_j_k_addresses[3];
-    i_j_k_addresses[0] = &i;
-    i_j_k_addresses[1] = &j;
-    i_j_k_addresses[2] = &k;
-    i_global = i;
+    unsigned char* l = malloc(SECRET_SIZE);
+    unsigned char* m = malloc(SECRET_SIZE);
+    unsigned char** klm_addresses[3];
+    klm_addresses[0] = &k;
+    klm_addresses[1] = &l;
+    klm_addresses[2] = &m;
+    k_global = k;
 
     char initialized[3] __attribute__ ((aligned (256)));
-    for(int iter = 0; iter < 3; iter++) initialized[iter] = false;  //all false
+    for(int i = 0; i < 3; i++) initialized[i] = false;  //all false
 
-    for(int iter = 0; iter < SECRET_SIZE; iter++) {
-        unsigned char* i_j_k_address = *i_j_k_addresses[initialize_index];
-        i_j_k_address[iter] = iter;
+    for(int i = 0; i < SECRET_SIZE; i++) {
+        unsigned char* klm_address = *klm_addresses[initialize_index];
+        klm_address[i] = i;
     }
     initialized[initialize_index] = true;
 
@@ -63,12 +63,12 @@ void victim_main_func(int initialize_index, int secret_index) {
     cpuid();
 
     if(initialized[0]) {
-        volatile cp_t cp = flush_reload_arr[i[secret_index]];
+        volatile cp_t cp = flush_reload_arr[k[secret_index]];
         //victim_subfunc(&i_j_k_addresses[0], secret_index);
     }
-    free(i);
-    free(j);
     free(k);
+    free(l);
+    free(m);
 }
 //printf("load initialized[0] = %d\n", time_mem_load((void*)&initialized[0]));
 
@@ -117,12 +117,12 @@ int main(int argc, char** argv) {
         printf("\nREPETITION %d\n", r);
         for (int s = 0; s < SECRET_SIZE; s++) {
             results[r][s] = prepare(s);
-            __sync_synchronize();
+            cpuid();
         }
     }
 
     for(int i = 0; i < SECRET_SIZE; i++) {
-        printf("0x%2x\t", i_global[i]);
+        printf("0x%2x\t", k_global[i]);
     }
 
     print_results(results, REPETITIONS, SECRET_SIZE, N_PAGES, CACHE_HIT);
