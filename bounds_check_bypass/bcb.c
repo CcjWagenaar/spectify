@@ -27,7 +27,7 @@ int accessible __attribute__ ((aligned (256))) = 100;
  *  ^(1): when arr is in mem the gadget still works, but the accuracy goes down.
  *        I currently do not know why, but I suspect it makes the loading of arr[x] take longer.
  */
-__attribute__((noinline)) void victim_func(int index, cp_t* arr, unsigned char* data) {
+void victim_func(int index, cp_t* arr, unsigned char* data) {
 
     //flush bound value
     flush((void*)&accessible);

@@ -79,12 +79,12 @@ static inline int* reload(cp_t *arr, int N_PAGES, int CACHE_HIT, int MAYBE_CACHE
         times[i] = t;
 
         if (t < MAYBE_CACHE_HIT) {
-            printf("0x%p\ti=%d  (%c)\ttime = %d\t", &arr[i], i, arr[i].id, t);
+            printf("0x%p\ti=%03d  (%c)\ttime = %d\t", &arr[i], i, arr[i].id, t);
 
             if (t < CACHE_HIT)  printf("CACHE HIT\n");
             else                printf("maybe hit\n");
 
-        }
+        }//*/
     }
 
 
