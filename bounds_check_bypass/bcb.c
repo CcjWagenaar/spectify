@@ -10,6 +10,7 @@
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
 #define SECRET_SIZE 25
+//TODO: secret in separate, adjacent string
 #define DATA "notasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretzhis is a secret message"
 
 int accessible __attribute__ ((aligned (256))) = 100;

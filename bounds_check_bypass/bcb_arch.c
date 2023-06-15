@@ -6,9 +6,10 @@
 #include "../lib/print_results.c"
 
 #define SECRET_SIZE 25
-#define DATA "notasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretzhis is a secret message"
-
-int accessible = 100;
+//TODO: update based on updated bcb
+#define SECRET "zhis is a secret message"
+#define DATA "notasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecre"
+int accessible = 100; //TODO: maybe make this a #define?
 
 char victim_func(int index, unsigned char* data) {
 
@@ -23,6 +24,8 @@ char prepare(int secret_index) {
 }
 
 int main(int argc, char* argv[]) {
+
+    printf("SECRET \t%p\tsize = 25\nDATA \t%p\tsize = 125\n", &SECRET, &DATA);
 
     char results[SECRET_SIZE];
 
