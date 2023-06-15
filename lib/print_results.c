@@ -71,4 +71,17 @@ void print_results(int*** results, int REPETITIONS, int secret_size, int N_PAGES
 
 }
 
+void print_results_arch(char* results, int SECRET_SIZE) {
+
+    for(int r = 0; r < SECRET_SIZE; r++) {
+        printf("char%3d:\t'%c'\t(%3d)\n", r, results[r], results[r]);
+    }
+
+    printf("\n\nleaked message: %s\n", results);
+
+
+
+
+}
+
 #endif //PRINT_RESULTS
