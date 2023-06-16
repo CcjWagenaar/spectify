@@ -26,6 +26,7 @@ cp_t* flush_reload_arr;
 extern inline void attack_func(pthread_mutex_t* lock_ptr, int secret_index) {
     pthread_mutex_lock(lock_ptr);
     volatile cp_t cp = flush_reload_arr[SECRET[secret_index]];
+    pthread_mutex_unlock(lock_ptr);
 }
 
 void victim_func(int lock_index, int secret_index) {

