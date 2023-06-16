@@ -15,7 +15,7 @@
 #define false 0
 #define true  1
 #define DBG 0
-#define MALLOC_SIZE 4096
+#define MALLOC_SIZE 4096        //this helps malloc at same location. (cp size)
 
 cp_t* flush_reload_arr;
 

