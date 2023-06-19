@@ -13,8 +13,7 @@ int DATA_SIZE = 7;
 
 char victim_func(int index) {
     //if (index < DATA_SIZE) {
-        unsigned char x = DATA[index];
-        return x;
+        return DATA[index];
     //} else return '?';
 }
 

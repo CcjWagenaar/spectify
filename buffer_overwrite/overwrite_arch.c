@@ -6,46 +6,34 @@
 #include "../lib/print_results.c"
 
 #define SECRET_SIZE 8
-#define BUF_SIZE 13
+#define BUF_SIZE 16
+#define SECRET "mysecret"
 
 typedef struct vars {
-    char* super_secret;
-    //char secret;                                                    //OPTION 1: works for some reason?
     char buf[BUF_SIZE];
-    char secret;                                                  //OPTION 2: should work but does not
-
+    char password;
 } vars_t;
 vars_t stack;
 
-char check_passwd(int user_idx, char user_char, char user_passwd, int secret_index) {
-
-    stack.super_secret = "mysecret"; //TODO: just line them up here
-
-    //bounds check should prevent overwrite. But speculatively executes
-    //if (stack.user_idx < buf_size) {
-        stack.buf[user_idx] = user_char;
+char victim_func(int user_id, char user_char, char user_password, int secret_index) {
+    stack.password = 'x';
+    //if (user_id < BUF_SIZE) {
+        stack.buf[user_id] = user_char;
     //}
 
-    //secret has been (speculatively) overwritten with user char.
-    if (user_passwd == stack.secret) {
-        //volatile cp_t cp = flush_reload_arr[cache.secret];
-        char s = stack.super_secret[secret_index];
-        return s;
-        //printf("super secret: '%c' (%d)\n", cp.id, cp.id);
-    }
-
-    return '?';
+    if (user_password == stack.password) {
+        return SECRET[secret_index];
+    } else return '?';
 }
 
 char prepare(int secret_index) {
-    return check_passwd(BUF_SIZE, 's', 's', secret_index);
+    return victim_func(BUF_SIZE, 's', 's', secret_index);
 }
 
 int main(int argc, char** argv) {
 
-    printf("s secret\t%p\n", &stack.super_secret);
-    printf("buf[%d] \t%p\n", BUF_SIZE, &stack.buf);
-    printf("secret  \t%p\n", &stack.secret);
+    printf("buf      = %p\tbuf[last] = %p\npassword = %p\toverwrite = %p\n",
+           &stack.buf, &stack.buf[BUF_SIZE-1], &stack.password, &stack.buf[BUF_SIZE]);
 
     char results[SECRET_SIZE];
 
