@@ -130,7 +130,6 @@ int main(int argc, char** argv) {
     srand(time(0));
     int*** results = alloc_results(REPETITIONS, SECRET_SIZE, N_PAGES); //results[REPETITIONS][SECRET_SIZE][N_PAGES]ints
 
-    //results[0][0] = prepare(1);
     for(int r = 0; r < REPETITIONS; r++) {
         printf("\nREPETITION %d\n", r);
         for (int s = 0; s < SECRET_SIZE; s++) {

