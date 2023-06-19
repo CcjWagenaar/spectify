@@ -30,7 +30,7 @@ cp_t* flush_reload_arr __attribute__ ((aligned (256)));
 void victim_func(int index) {
 
     //flush bound value
-    flush((void*)&DATA_SIZE);
+    flush(&DATA_SIZE);
     cpuid();
 
     //access (possibly out of bounds)

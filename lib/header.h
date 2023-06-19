@@ -16,7 +16,7 @@ void free_results(int*** results, int REPETITIONS, int secret_size);
 
 //time_and_flush.c
 static inline int time_mem_load(void *addr);
-extern inline void flush(char *addr);
+extern inline void flush(void *addr);
 extern inline void cpuid();
 extern inline void nop_20();
 void flush_arr(cp_t* arr, int N_PAGES);
