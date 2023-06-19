@@ -77,7 +77,8 @@ int* prepare(int secret_index) {
 
 int main(int argc, char* argv[]) {
 
-    printf("SECRET \t%p\tsize = %d\nDATA \t%p\tsize = %d\n", &SECRET, SECRET_SIZE, &DATA, DATA_SIZE);
+    printf("SECRET \t%p\tsize = %d\nDATA \t%p\tsize = %d\nDATA[%d]\t%p\n",
+           &SECRET, SECRET_SIZE, &DATA, DATA_SIZE, DATA_SIZE, &DATA[DATA_SIZE]);
 
     int*** results = alloc_results(REPETITIONS, SECRET_SIZE, N_PAGES); //results[REPETITIONS][SECRET_SIZE][N_PAGES]ints
 
