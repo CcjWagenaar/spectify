@@ -5,10 +5,11 @@
 #include "../lib/time_and_flush.c"
 #include "../lib/print_results.c"
 
-#define SECRET_SIZE 9
+
 #define SECRET "mysecret"
-#define DATA "publicpublicpublicpublicpublic"
-int DATA_SIZE = 31;
+#define DATA "public"
+#define SECRET_SIZE 9
+int DATA_SIZE = 7;
 
 char victim_func(int index) {
     //if (index < DATA_SIZE) {

