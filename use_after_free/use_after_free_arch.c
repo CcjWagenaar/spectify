@@ -5,28 +5,28 @@
 #include "../lib/time_and_flush.c"
 #include "../lib/print_results.c"
 
-#define SECRET_SIZE 8
+#define SECRET_SIZE 9
 #define SECRET "mysecret"
 #define MALLOC_SIZE 4096
+#define DBG 1
 
 void* attack_func(int secret_index) {
-    int* k_dupe = malloc(MALLOC_SIZE);
-    *k_dupe = secret_index;
-    //if(DBG)printf("k dupe addr: %p\n", k_dupe);
-    return k_dupe;
+    int* var1_dupe = malloc(MALLOC_SIZE);
+    *var1_dupe = secret_index;
+    return var1_dupe;
 }
 
 char victim_func(int secret_index) {
 
-    int* k = calloc(1, MALLOC_SIZE);
-    free(k);
+    int* var1 = calloc(1, MALLOC_SIZE);
+    free(var1);
 
-    int* k_dupe = attack_func(secret_index);
+    int* var1_dupe = attack_func(secret_index);
 
-    //printf("k:    \t%p\nk_dupe:\t%p\n", k, k_dupe);
+    if(DBG)printf("var1:    \t%p\nvar1_dupe:\t%p\n", var1, var1_dupe);
 
-    char secret_char = SECRET[*k];
-    free(k_dupe);
+    char secret_char = SECRET[*var1];
+    free(var1_dupe);
     return secret_char;
 }
 

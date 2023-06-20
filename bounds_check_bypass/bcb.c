@@ -26,6 +26,8 @@ cp_t* flush_reload_arr __attribute__ ((aligned (256)));
  * Variables requried in mem:
  *  DATA_SIZE
  *
+ * Training:    index=0
+ * Attack:      index={iterate through SECRET}
  */
 void victim_func(int index) {
 
