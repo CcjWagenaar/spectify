@@ -7,30 +7,33 @@
 
 #define SECRET_SIZE 9
 #define SECRET "mysecret"
-#define MALLOC_SIZE 4096
-#define false 0
-#define true  1
-#define DBG 1
+#define DBG 0
 
 void touch_secret(int secret_index) {
     volatile char s = SECRET[secret_index];
     if(DBG)printf("secret\t%p:\t%d\n", &s, s);
 }
 
-char uninit_func() {
-    volatile char x;
-    if(DBG)printf("uninit\t%p:\t%d\n", &x, x);
-    return x;
+void init_func(int val) {
+    volatile char init = val;
+    if(DBG)printf("init  \t%p:\t%d\n", &init, init);
 }
 
-char victim_func(char init_bool, int secret_index) {
-    touch_secret(secret_index);
-    return uninit_func();
+char uninit_func() {
+    volatile char uninit;
+    //volatile char uninit = 'u';
+    if(DBG)printf("uninit\t%p:\t%d\n", &uninit, uninit);
+    return uninit;
+}
 
+char victim_func(int secret_index) {
+    touch_secret(secret_index);
+    //init_func('i');
+    return uninit_func();
 }
 
 char prepare(int secret_index) {
-    return victim_func(false, secret_index);
+    return victim_func(secret_index);
 }
 
 int main(int argc, char** argv) {
