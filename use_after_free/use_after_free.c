@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "../lib/gen_array.c"
 #include "../lib/time_and_flush.c"
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 10
+#define REPETITIONS 20
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
 #define SECRET_SIZE 9
@@ -36,7 +37,6 @@ void* attack_func(int secret_index) {
  * Training: free_index=1 print_index=0
  * Attack:   free_index=0 print_index={iterate through SECRET}
  */
-
 void victim_func(int free_index, int secret_index) {
 
     //alloc 2 numbers. put addresses in array to prevent branches (fools branch predictor).
@@ -53,8 +53,8 @@ void victim_func(int free_index, int secret_index) {
     freed[1] = false;
 
     //free either var0 or var1 depending on the parameter. Branch predictor cannot determine which (no branches).
-    int* var01_address = var01_addresses[free_index];
-    free(var01_address);
+    int* var0or1_address = var01_addresses[free_index];
+    free(var0or1_address);
     freed[free_index] = true;
 
     //Now that var0 or var1 has been freed. A new allocation of the same size most likely
@@ -122,6 +122,8 @@ int* prepare(int secret_index) {
 int main(int argc, char** argv) {
     int*** results = alloc_results(REPETITIONS, SECRET_SIZE, N_PAGES); //results[REPETITIONS][SECRET_SIZE][N_PAGES]ints
 
+    clock_t start2 = clock();
+
     for(int r = 0; r < REPETITIONS; r++) {
         printf("\nREPETITION %d\n", r);
         for (int s = 0; s < SECRET_SIZE; s++) {
@@ -130,7 +132,11 @@ int main(int argc, char** argv) {
         }
     }
 
+    clock_t end2 = clock();
+    double measured_time = ((double)(end2 - start2))/CLOCKS_PER_SEC;
+
     print_results(results, REPETITIONS, SECRET_SIZE, N_PAGES, CACHE_HIT);
+    printf("measured_time = %f\n", measured_time);
 
     free_results(results, REPETITIONS, SECRET_SIZE);
 

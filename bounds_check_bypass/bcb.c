@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "../lib/gen_array.c"
 #include "../lib/time_and_flush.c"
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 10
+#define REPETITIONS 20
 #define N_TRAINING 10
 #define CACHE_HIT 100
 #define MAYBE_CACHE_HIT 175
@@ -16,7 +17,6 @@
 int DATA_SIZE __attribute__ ((aligned (256))) = 7;
 
 cp_t* flush_reload_arr __attribute__ ((aligned (256)));
-
 
 /*
  * Variables required in cache:
@@ -84,6 +84,8 @@ int main(int argc, char* argv[]) {
 
     int*** results = alloc_results(REPETITIONS, SECRET_SIZE, N_PAGES); //results[REPETITIONS][SECRET_SIZE][N_PAGES]ints
 
+    clock_t start2 = clock();
+
     for(int r = 0; r < REPETITIONS; r++) {
 
         for (int s = 0; s < SECRET_SIZE; s++) {
@@ -92,7 +94,11 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    clock_t end2 = clock();
+    double measured_time = ((double)(end2 - start2))/CLOCKS_PER_SEC;
+
     print_results(results, REPETITIONS, SECRET_SIZE, N_PAGES, CACHE_HIT);
+    printf("measured_time = %f\n", measured_time);
 
     free_results(results, REPETITIONS, SECRET_SIZE);
 
