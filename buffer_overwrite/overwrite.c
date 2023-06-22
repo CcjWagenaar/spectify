@@ -9,7 +9,6 @@
 #define N_PAGES 256
 #define REPETITIONS 20
 #define CACHE_HIT 100
-#define MAYBE_CACHE_HIT 175
 #define SECRET_SIZE 9
 #define N_TRAINING 10
 #define BUF_SIZE 16
@@ -94,7 +93,7 @@ int* prepare(int secret_index) {
     cpuid();
 
     //time loading duration per array index
-    int* results = reload(flush_reload_arr, N_PAGES, CACHE_HIT, MAYBE_CACHE_HIT);
+    int* results = reload(flush_reload_arr, N_PAGES, CACHE_HIT);
     unmap_cache_pages(flush_reload_arr, N_PAGES);
     return results;
 }

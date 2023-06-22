@@ -70,7 +70,7 @@ void flush_arr(cp_t* arr, int N_PAGES) {
 
 }
 
-static inline int* reload(cp_t *arr, int N_PAGES, int CACHE_HIT, int MAYBE_CACHE_HIT) {
+static inline int* reload(cp_t *arr, int N_PAGES, int CACHE_HIT) {
     int* times = malloc(N_PAGES * sizeof(int));
 
     for(int i = 0; i < N_PAGES; i++) {
@@ -78,12 +78,8 @@ static inline int* reload(cp_t *arr, int N_PAGES, int CACHE_HIT, int MAYBE_CACHE
         int t = (int)time_mem_load(&arr[i]);
         times[i] = t;
 
-        if (t < MAYBE_CACHE_HIT) {
-            printf("0x%p\ti=%03d  (%c)\ttime = %d\t", &arr[i], i, arr[i].id, t);
-
-            if (t < CACHE_HIT)  printf("CACHE HIT\n");
-            else                printf("maybe hit\n");
-
+        if (t < CACHE_HIT) {
+            printf("0x%p\ti=%03d  (%c)\ttime = %d\tCACHE HIT\n", &arr[i], i, arr[i].id, t);
         }//*/
     }
 

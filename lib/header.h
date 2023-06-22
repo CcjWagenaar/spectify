@@ -20,7 +20,7 @@ extern inline void flush(void *addr);
 extern inline void cpuid();
 extern inline void nop_20();
 void flush_arr(cp_t* arr, int N_PAGES);
-static inline int* reload(cp_t *arr, int N_PAGES, int CACHE_HIT, int MAYBE_CACHE_HIT);
+static inline int* reload(cp_t *arr, int N_PAGES, int CACHE_HIT);
 
 //print_results.c
 int cmpfunc (const void * a, const void * b) {return ( *(int*)a - *(int*)b ); }
