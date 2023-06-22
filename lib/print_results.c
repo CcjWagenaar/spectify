@@ -2,25 +2,58 @@
 #define PRINT_RESULTS
 
 #include "header.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-void print_results(int*** results, int REPETITIONS, int secret_size, int N_PAGES, int CACHE_HIT) {
+int calculate_median_accuracy(char* leaked, char* SECRET, int SECRET_SIZE) {
+    int matches = 0;
+    for(int s = 0; s < SECRET_SIZE; s++) {
+        if(leaked[s] == SECRET[s]) matches++;
+    }
+    return matches;
+}
 
+int calculate_total_accuracy(char** cache_hits, int REPETITIONS, char* SECRET, int SECRET_SIZE) {
+    int matches = 0;
+    int total = REPETITIONS * SECRET_SIZE;
     for(int r = 0; r < REPETITIONS; r++) {
-        printf("Repetition %d\n", r);
-        for (int s = 0; s < secret_size; s++) {
-            printf("char: %3d\t", s);
-            for (int p = 0; p < N_PAGES; p++) {
-                int t = results[r][s][p];
-                if (t < CACHE_HIT) printf("found: '%c'\t", p);
-            }
-            printf("\n");
+        for(int s = 0; s < SECRET_SIZE; s++) {
+            if(cache_hits[r][s] == SECRET[s]) matches++;
         }
     }
+    return matches;
+}
 
-    int* character_medians[secret_size];
+void print_results(int*** results, int REPETITIONS, char* SECRET, int SECRET_SIZE, int N_PAGES, int CACHE_HIT, double measured_time) {
 
+    printf("\nPrinting results...\n");
 
-    for(int s = 0; s < secret_size; s++) {
+    //list all cache hits, store in cache_hits.
+    char* cache_hits[REPETITIONS]; //cache_hits[REPETITIONS][SECRET_SIZE]
+    for(int r = 0; r < REPETITIONS; r++) {
+        cache_hits[r] = malloc(SECRET_SIZE+1 * sizeof(char));
+        cache_hits[r][SECRET_SIZE] = '\0'; //ensure ending on zero byte
+        printf("Repetition %d\n", r);
+        for (int s = 0; s < SECRET_SIZE; s++) {
+            printf("char: %3d\t", s);
+            int cache_hits_for_this_char = 0;
+            for (int p = 0; p < N_PAGES; p++) {
+                int t = results[r][s][p];
+                if (t < CACHE_HIT) {
+                    cache_hits_for_this_char++;
+                    cache_hits[r][s] = p;
+                    printf("found: '%c'\t", p);
+                }
+            }
+            if(cache_hits_for_this_char != 1) cache_hits[r][s] = '?';
+            printf("\n");
+        }
+        printf("\t\tfound: '%s'\n", cache_hits[r]);
+    }
+
+    //calculate the median loading time per character in character_medians
+    int* character_medians[SECRET_SIZE];
+    for(int s = 0; s < SECRET_SIZE; s++) {
         character_medians[s] = malloc(N_PAGES * sizeof(int));
 
         for(int p = 0; p < N_PAGES; p++) {
@@ -33,7 +66,8 @@ void print_results(int*** results, int REPETITIONS, int secret_size, int N_PAGES
         }
     }
 
-    /*for(int s = 0; s < secret_size; s++) {
+    /*//Print all median loading times using character_medians, also of non cache hits
+    for(int s = 0; s < SECRET_SIZE; s++) {
         printf("\n\nCHAR %d\n", s);
         for(int p = 0; p < N_PAGES; p++) {
             int t = character_medians[s][p];
@@ -44,10 +78,12 @@ void print_results(int*** results, int REPETITIONS, int secret_size, int N_PAGES
     }
     printf("\n\n");//*/
 
-    char secret_message[secret_size+1];
-    secret_message[secret_size] = 0;
-    for(int s = 0; s < secret_size; s++) {
-
+    //find the lowest median per repetition. If lowest median is
+    //too slow to be a cache hit, it is replaced with a '?'.
+    //size +1 to ensure the string ends on a null-byte.
+    char leaked_message[SECRET_SIZE+1];
+    leaked_message[SECRET_SIZE] = 0;
+    for(int s = 0; s < SECRET_SIZE; s++) {
         int index_of_min = 0;
         int time_of_min = character_medians[s][0];
 
@@ -60,15 +96,34 @@ void print_results(int*** results, int REPETITIONS, int secret_size, int N_PAGES
         }
 
         if(time_of_min > CACHE_HIT) index_of_min = '?';
-        secret_message[s] = index_of_min;
+        leaked_message[s] = index_of_min;
 
         printf("char%3d:\t'%c'\t(%3d)\n", s, index_of_min, index_of_min);
-
-
     }
 
-    printf("\n\nleaked message: %s\n", secret_message);
+    int total_bytes = REPETITIONS*SECRET_SIZE;
+    int median_accuracy = calculate_median_accuracy(leaked_message, SECRET, SECRET_SIZE);
+    int total_accuracy = calculate_total_accuracy(cache_hits, REPETITIONS, SECRET, SECRET_SIZE);
+    double median_accuracy_percentage = (median_accuracy/(float)SECRET_SIZE)*100;
+    double total_accuracy_percentage = (total_accuracy/((float)REPETITIONS*SECRET_SIZE))*100;
+    double time_per_byte = measured_time / total_bytes;
+    double time_per_correctly_leaked_byte = measured_time / total_accuracy;
 
+    printf("\n\n");
+
+    printf("Leaked secret:    \t%s\n", leaked_message);
+    printf("Actual secret:    \t%s\n", SECRET);
+    printf("Median accuracy:  \t%d/%d\t\t%f%%\n", median_accuracy, SECRET_SIZE, median_accuracy_percentage);
+    printf("Total accuracy:   \t%d/%d\t\t%f%%\n", total_accuracy, total_bytes, total_accuracy_percentage);
+    printf("Total time:       \t%f \tseconds\n", measured_time);
+    printf("Time per byte:    \t%f \tseconds / byte\n", time_per_byte);
+    printf("                  \t%f \tmicroseconds / byte\n", time_per_byte*1e6);
+    printf("Time per correct\nbyte (leakage rate):\t%f \tseconds\n", time_per_correctly_leaked_byte);
+    printf("                  \t%f \tmicroseconds / byte\n", time_per_correctly_leaked_byte*1e6);
+    //printf("                  \t%f")
+
+    for(int r = 0; r < REPETITIONS; r++) free(cache_hits[r]);
+    for(int s = 0; s < SECRET_SIZE; s++) free(character_medians[s]);
 }
 
 void print_results_arch(char* results, int SECRET_SIZE) {
@@ -78,9 +133,6 @@ void print_results_arch(char* results, int SECRET_SIZE) {
     }
 
     printf("\n\nleaked message: %s\n", results);
-
-
-
 
 }
 

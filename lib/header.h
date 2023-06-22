@@ -9,7 +9,7 @@ typedef struct cache_page {
 
 //gen_array.c
 cp_t* init_flush_reload(int N_PAGES);
-void unmap_cache_pages(cp_t* arr, int N_PAGES);
+void free_flush_reload(cp_t* arr, int N_PAGES);
 void print_mmap_arr_vals(cp_t* arr, int N_PAGES);
 int*** alloc_results(int REPETITIONS, int secret_size, int N_PAGES);
 void free_results(int*** results, int REPETITIONS, int secret_size);
@@ -24,7 +24,7 @@ static inline int* reload(cp_t *arr, int N_PAGES, int CACHE_HIT);
 
 //print_results.c
 int cmpfunc (const void * a, const void * b) {return ( *(int*)a - *(int*)b ); }
-void print_results(int*** results, int REPETITIONS, int secret_size, int N_PAGES, int CACHE_HIT);
+void print_results(int*** results, int REPETITIONS, char* SECRET, int secret_size, int N_PAGES, int CACHE_HIT, double measured_time);
 
 
 #endif //HEADER

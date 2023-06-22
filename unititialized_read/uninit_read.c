@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
 
 #include "../lib/gen_array.c"
@@ -7,7 +6,7 @@
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 20
+#define REPETITIONS 100
 #define CACHE_HIT 100
 #define SECRET_SIZE 9
 #define N_TRAINING 10
@@ -84,7 +83,7 @@ int* prepare(int secret_index) {
     cpuid();
     //time loading duration per array index
     int* results = reload(flush_reload_arr, N_PAGES, CACHE_HIT);
-    unmap_cache_pages(flush_reload_arr, N_PAGES);
+    free_flush_reload(flush_reload_arr, N_PAGES);
     return results;
 }
 
@@ -105,8 +104,7 @@ int main(int argc, char** argv) {
     clock_t end2 = clock();
     double measured_time = ((double)(end2 - start2))/CLOCKS_PER_SEC;
 
-    print_results(results, REPETITIONS, SECRET_SIZE, N_PAGES, CACHE_HIT);
-    printf("measured_time = %f\n", measured_time);
+    print_results(results, REPETITIONS, SECRET, SECRET_SIZE, N_PAGES, CACHE_HIT, measured_time);
 
     free_results(results, REPETITIONS, SECRET_SIZE);
 }

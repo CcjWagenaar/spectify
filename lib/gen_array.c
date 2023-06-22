@@ -17,7 +17,7 @@ cp_t* init_flush_reload(int N_PAGES) {
     return arr;
 }
 
-void unmap_cache_pages(cp_t* arr, int N_PAGES) {
+void free_flush_reload(cp_t* arr, int N_PAGES) {
     munmap(arr, N_PAGES * sizeof(cp_t));
 }
 
