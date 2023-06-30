@@ -7,7 +7,7 @@
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 100
+#define REPETITIONS 10000
 #define CACHE_HIT 100
 #define SECRET_SIZE 9
 #define N_TRAINING 10

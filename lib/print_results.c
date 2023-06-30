@@ -128,26 +128,28 @@ void print_results(int*** results, int REPETITIONS, char* SECRET, int SECRET_SIZ
     int total_bytes = REPETITIONS*SECRET_SIZE;
     int median_accuracy = calculate_median_accuracy(leaked_message, SECRET, SECRET_SIZE);
     int total_accuracy = calculate_total_accuracy(cache_hits, REPETITIONS, SECRET, SECRET_SIZE);
-    double median_accuracy_percentage = (median_accuracy/(float)SECRET_SIZE)*100;
-    double total_accuracy_percentage = (total_accuracy/((float)REPETITIONS*SECRET_SIZE))*100;
-    double time_per_byte = measured_time / total_bytes;
-    double time_per_correctly_leaked_byte = measured_time / total_accuracy;
+    long double median_accuracy_percentage = (median_accuracy/(long double)SECRET_SIZE)*100;
+    long double total_accuracy_percentage = (total_accuracy/((long double)REPETITIONS*SECRET_SIZE))*100;
+    long double time_per_byte = measured_time / total_bytes;
+    long double time_per_correctly_leaked_byte = measured_time / total_accuracy;
+    long double byte_per_second = total_bytes / measured_time;
+    long double leaked_byte_per_second = total_accuracy / measured_time;
 
     printf("\n\n");
-
-    printf("Leaked secret:    \t%s\n", leaked_message);
+    printf("repetitions:      \t%d\n", REPETITIONS);
     printf("Actual secret:    \t%s\n", SECRET);
-    printf("Median accuracy:  \t%d/%d\t\t%f%%\n", median_accuracy, SECRET_SIZE, median_accuracy_percentage);
-    printf("Total accuracy:   \t%d/%d\t\t%f%%\n", total_accuracy, total_bytes, total_accuracy_percentage);
+    printf("Leaked secret:    \t%s\n", leaked_message);
+    printf("Median accuracy:  \t%d/%d\t\t%Lf%%\n", median_accuracy, SECRET_SIZE, median_accuracy_percentage);
+    printf("Total accuracy:   \t%d/%d\t\t%Lf%%\n", total_accuracy, total_bytes, total_accuracy_percentage);
     printf("Total time:       \t%f \tseconds\n", measured_time);
-    printf("Time per byte:    \t%f \tseconds / byte\n", time_per_byte);
-    printf("                  \t%f \tmicroseconds / byte\n", time_per_byte*1e6);
-    printf("Time per correct\nbyte (leakage rate):\t%f \tseconds\n", time_per_correctly_leaked_byte);
-    printf("                  \t%f \tmicroseconds / byte\n", time_per_correctly_leaked_byte*1e6);
+    printf("bytes per second: \t%Lf \tbytes / second\n", byte_per_second);
+    //printf("                  \t%d \t\tmicroseconds / byte\n", (int)(time_per_byte*1e6));                   //clock() of time.h has microsecond precision only, hence (int)
+    printf("Leaked byte per\nsecond (leakage rate):\t%Lf \tbytes per second\n", leaked_byte_per_second);
+    //printf("                  \t%d \t\tmicroseconds / byte\n", (int)(time_per_correctly_leaked_byte*1e6));  //clock() of time.h has microsecond precision only, hence (int)
 
     for(int r = 0; r < REPETITIONS; r++) free(cache_hits[r]);
-    free(cache_hits);
     for(int s = 0; s < SECRET_SIZE; s++) free(character_medians[s]);
+    free(cache_hits);
     free(character_medians);
 }
 

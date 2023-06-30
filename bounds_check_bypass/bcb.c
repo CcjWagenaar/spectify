@@ -6,7 +6,7 @@
 #include "../lib/print_results.c"
 
 #define N_PAGES 256
-#define REPETITIONS 100
+#define REPETITIONS 10000
 #define N_TRAINING 10
 #define CACHE_HIT 100
 #define SECRET_SIZE 9
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     clock_t start2 = clock();
 
     for(int r = 0; r < REPETITIONS; r++) {
-
+        printf("\nREPETITION %d\n", r);
         for (int s = 0; s < SECRET_SIZE; s++) {
             results[r][s] = prepare(DATA_SIZE + s);
             cpuid();
