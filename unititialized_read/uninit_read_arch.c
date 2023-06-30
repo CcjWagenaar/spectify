@@ -1,13 +1,12 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "../lib/gen_array.c"
 #include "../lib/time_and_flush.c"
 #include "../lib/print_results.c"
 
 #define SECRET_SIZE 9
-#define SECRET "mysecret"
-#define DBG 0
+#define SECRET      "mysecret"
+#define DBG         0
 
 void touch_secret(int secret_index) {
     volatile char s = SECRET[secret_index];

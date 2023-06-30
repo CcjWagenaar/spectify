@@ -6,15 +6,17 @@
 #include "../lib/time_and_flush.c"
 #include "../lib/print_results.c"
 
-#define N_PAGES 256
-#define REPETITIONS 10000
-#define CACHE_HIT 100
+#define CACHE_HIT   100
+#define N_PAGES     256
+
+#define REPETITIONS 1000
+#define N_TRAINING  10
 #define SECRET_SIZE 9
-#define N_TRAINING 10
-#define SECRET "mysecret"
-#define false 0
-#define true  1
-#define DBG 0
+#define SECRET      "mysecret"
+
+#define false       0
+#define true        1
+#define DBG         0
 
 #define FLAG PTHREAD_MUTEX_DEFAULT
 //#define FLAG PTHREAD_MUTEX_ADAPTIVE_NP

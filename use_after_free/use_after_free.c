@@ -6,21 +6,23 @@
 #include "../lib/time_and_flush.c"
 #include "../lib/print_results.c"
 
-#define N_PAGES 256
-#define REPETITIONS 10000
-#define CACHE_HIT 100
+#define CACHE_HIT   100
+#define N_PAGES     256
+#define PAGE_SIZE   4096    //this helps malloc at same location. (page size)
+
+#define REPETITIONS 1000
+#define N_TRAINING  10
 #define SECRET_SIZE 9
-#define N_TRAINING 10
-#define SECRET "mysecret"
-#define false 0
-#define true  1
-#define DBG false
-#define MALLOC_SIZE 4096    //this helps malloc at same location. (cache page size)
+#define SECRET      "mysecret"
+
+#define false       0
+#define true        1
+#define DBG         false
 
 cp_t* flush_reload_arr;
 
 void* attack_func(int secret_index) {
-    int* var0_dupe = malloc(MALLOC_SIZE);
+    int* var0_dupe = malloc(PAGE_SIZE);
     *var0_dupe = secret_index;
     return var0_dupe;
 }
@@ -40,8 +42,8 @@ void victim_func(int free_index, int secret_index) {
 
     //alloc 2 numbers. put addresses in array to prevent branches (fools branch predictor).
     int  n_vars = 2;
-    int* var0 = calloc(1, MALLOC_SIZE);
-    int* var1 = calloc(1, MALLOC_SIZE);
+    int* var0 = calloc(1, PAGE_SIZE);
+    int* var1 = calloc(1, PAGE_SIZE);
     int* var01_addresses[n_vars];
     var01_addresses[0] = var0;
     var01_addresses[1] = var1;

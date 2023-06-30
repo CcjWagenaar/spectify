@@ -6,19 +6,19 @@
 #include "../lib/print_results.c"
 
 #define SECRET_SIZE 9
-#define SECRET "mysecret"
-#define MALLOC_SIZE 4096
-#define DBG 1
+#define SECRET      "mysecret"
+#define PAGE_SIZE   4096
+#define DBG         1
 
 void* attack_func(int secret_index) {
-    int* var1_dupe = malloc(MALLOC_SIZE);
+    int* var1_dupe = malloc(PAGE_SIZE);
     *var1_dupe = secret_index;
     return var1_dupe;
 }
 
 char victim_func(int secret_index) {
 
-    int* var1 = calloc(1, MALLOC_SIZE);
+    int* var1 = calloc(1, PAGE_SIZE);
     free(var1);
 
     int* var1_dupe = attack_func(secret_index);
