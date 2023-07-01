@@ -130,10 +130,24 @@ void print_results(int*** results, int REPETITIONS, char* SECRET, int SECRET_SIZ
     int total_accuracy = calculate_total_accuracy(cache_hits, REPETITIONS, SECRET, SECRET_SIZE);
     long double median_accuracy_percentage = (median_accuracy/(long double)SECRET_SIZE)*100;
     long double total_accuracy_percentage = (total_accuracy/((long double)REPETITIONS*SECRET_SIZE))*100;
-    long double time_per_byte = measured_time / total_bytes;
-    long double time_per_correctly_leaked_byte = measured_time / total_accuracy;
     long double byte_per_second = total_bytes / measured_time;
     long double leaked_byte_per_second = total_accuracy / measured_time;
+
+    //grep print
+    printf("\nGREP PRINT\n");
+    printf("grep_repetitions %d\n", REPETITIONS);
+    printf("grep_secret %s\n", SECRET);
+    printf("grep_secret size %d\n", SECRET_SIZE);
+    printf("grep_measured_time %f\n", measured_time);
+    printf("grep_total_bytes %d\n", total_bytes);
+    printf("grep_median_accuracy %d\n", median_accuracy);
+    printf("grep_total_accuracy %d\n", total_accuracy);
+    printf("grep_median_accuracy_percentage %Lf\n", median_accuracy_percentage);
+    printf("grep_total_accuracy_percentage %Lf\n", total_accuracy_percentage);
+    printf("grep_byte_per_second %Lf\n", byte_per_second);
+    printf("grep_leaked_byte_per_second %Lf\n", leaked_byte_per_second);
+    printf("END GREP PRINT\n");
+    //end grep print*/
 
     printf("\n\n");
     printf("repetitions:      \t%d\n", REPETITIONS);

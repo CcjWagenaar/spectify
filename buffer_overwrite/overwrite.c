@@ -15,6 +15,8 @@
 #define BUF_SIZE    16
 #define SECRET      "mysecret"
 
+#define OVERWRITE_INDEX BUF_SIZE
+
 typedef struct vars {
     char buf[BUF_SIZE];
     char password;
@@ -74,7 +76,7 @@ int* prepare(int secret_index) {
     }
 
     //set up parameters for attack function call.
-    user_ids      [n_accesses - 1] = BUF_SIZE;
+    user_ids      [n_accesses - 1] = OVERWRITE_INDEX;
     user_chars    [n_accesses - 1] = 's';
     user_pwds     [n_accesses - 1] = 's';
     secret_indices[n_accesses - 1] = secret_index;
@@ -104,7 +106,7 @@ int* prepare(int secret_index) {
 
 int main(int argc, char** argv) {
     printf("buf      = %p\tbuf[last] = %p\npassword = %p\toverwrite = %p\n",
-           &wrapper.buf, &wrapper.buf[BUF_SIZE-1], &wrapper.password, &wrapper.buf[BUF_SIZE]);
+           &wrapper.buf, &wrapper.buf[BUF_SIZE-1], &wrapper.password, &wrapper.buf[OVERWRITE_INDEX]);
 
     int*** results = alloc_results(REPETITIONS, SECRET_SIZE, N_PAGES); //results[REPETITIONS][SECRET_SIZE][N_PAGES]ints
 
