@@ -7,7 +7,7 @@
 #define SECRET      "mysecret"
 #define BUF         "public"
 #define SECRET_SIZE 9
-int BUF_SIZE = 7;
+int BUF_SIZE =      7;
 
 char victim_func(int index) {
     //if (index < BUF_SIZE) {

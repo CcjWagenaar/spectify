@@ -15,8 +15,8 @@
 #define SECRET      "mysecret"
 #define BUF         "public"
 
-int BUF_SIZE __attribute__ ((aligned (CL_SIZE))) = 7;
-cp_t* flush_reload_arr __attribute__ ((aligned (CL_SIZE)));
+int BUF_SIZE __attribute__((aligned(CL_SIZE))) = 7;
+cp_t* flush_reload_arr __attribute__((aligned(CL_SIZE)));
 
 /*
  * Variables required in cache:

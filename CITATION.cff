@@ -1,0 +1,12 @@
+cff-version: 1.0.0
+message: "If you use this software, please cite it using these metadata."
+title: "Spectify: Transforming Regular Vulnerabilities into Spectre Vulnerabilities"
+abstract: This is my awesome research software. It does many things.
+authors:
+  - family-names: Wagenaar
+    given-names: Chris
+    #orcid: https://orcid.org/1234-5678-9101-1121
+version: 1.0.0
+#doi:
+date-released: 2021-08-11
+repository-code: "https://github.com/CcjWagenaar/spectify"
