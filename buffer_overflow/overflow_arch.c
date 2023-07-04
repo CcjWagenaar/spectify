@@ -14,7 +14,8 @@ typedef struct vars {
 } vars_t;
 vars_t wrapper;
 
-char victim_func(int user_id, char user_char, char user_password, int secret_index) {
+char victim_func(int user_id, char user_char,
+                 char user_password, int secret_index) {
     wrapper.password = 'x';
     //if (user_id < BUF_SIZE) {
         wrapper.buf[user_id] = user_char;

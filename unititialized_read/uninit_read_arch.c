@@ -20,7 +20,7 @@ void init_func(int val) {
 
 char uninit_func() {
     volatile char uninit;
-    //volatile char uninit = 'u';
+    //uninit = 'u';
     if(DBG)printf("uninit\t%p:\t%d\n", &uninit, uninit);
     return uninit;
 }

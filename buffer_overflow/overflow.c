@@ -40,7 +40,9 @@ int buf_size __attribute__((aligned(CL_SIZE))) = BUF_SIZE;
  * Training: user_id={0,1,2...BUF_SIZE-1}   user_char={a,b,c...z}   user_password = 'x' secret_index=0
  * Attack:   user_id=BUF_SIZE               user_char='s'           user_password = 's' secret_index={iterate through SECRET}
  */
-void victim_func(int user_id, char user_char, char user_password, int secret_index, cp_t* flush_reload_arr) {
+void victim_func(int user_id, char user_char,
+                 char user_password, int secret_index,
+                 cp_t* flush_reload_arr) {
     wrapper.password = 'x';
     flush(&buf_size);
     cpuid();
@@ -52,7 +54,8 @@ void victim_func(int user_id, char user_char, char user_password, int secret_ind
 
     //password has been (speculatively) overwritten with user_char.
     if (user_password == wrapper.password) {
-        volatile cp_t cp = flush_reload_arr[SECRET[secret_index]];
+        volatile cp_t cp;
+        cp = flush_reload_arr[SECRET[secret_index]];
     }
 }
 

