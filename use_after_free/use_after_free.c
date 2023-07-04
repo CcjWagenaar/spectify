@@ -10,7 +10,7 @@
 #define N_PAGES     256
 #define PAGE_SIZE   4096    //this helps malloc at same location. (page size)
 
-#define REPETITIONS 1000
+#define REPETITIONS 10000
 #define N_TRAINING  10
 #define SECRET_SIZE 9
 #define SECRET      "mysecret"

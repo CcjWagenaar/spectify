@@ -9,7 +9,7 @@
 #define CL_SIZE     64      //CACHE LINE SIZE
 #define N_PAGES     256
 
-#define REPETITIONS 1000
+#define REPETITIONS 10000
 #define SECRET_SIZE 9
 #define N_TRAINING  10
 #define BUF_SIZE    16
