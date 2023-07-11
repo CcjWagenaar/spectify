@@ -30,9 +30,7 @@ if not path.exists("data"):
 
 date_time = datetime.today()
 timelabel = date_time.strftime("%Y-%m-%d_%H;%M;%S")
-filepath = f"data/measurement_{timelabel}.txt"
-file = open(filepath, 'w')  #TODO: probs remove this and the next. then also add ../ to path
-file.close()
+filepath = f"../data/measurement_{timelabel}.txt"
 
 #avg for average
 def avg(lst):
@@ -119,7 +117,7 @@ for prog_index in range(0, len(progs)):
     avg_bytes_per_second            = avg(bytes_per_second_list)
     avg_leaked_bytes_per_second     = avg(leaked_bytes_per_second_list)
 
-    file = open(f"../{filepath}", 'a')
+    file = open(filepath, 'a')
 
     for i in range(0, 2):
         print(f"\nResults of repeating {prog} {PROG_REPETITIONS} times:")

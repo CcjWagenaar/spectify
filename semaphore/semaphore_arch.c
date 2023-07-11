@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
+#include <semaphore.h>
 
 #include "../lib/gen_array.c"
 #include "../lib/time_and_flush.c"
@@ -8,14 +8,14 @@
 
 #define SECRET_SIZE 9
 #define SECRET      "mysecret"
+#define SEM_COUNT   2
 #define DBG         0
-#define FLAG        PTHREAD_MUTEX_DEFAULT
 
-void attack_func(/*pthread_mutex_t* lock_ptr,*/
-                 int* lock_var_ptr, int secret_index) {
-    //if(pthread_mutex_trylock(lock_ptr) != 0) return;
-    *lock_var_ptr = secret_index;
-    //pthread_mutex_unlock(lock_ptr);
+void attack_func(sem_t* semaphore_ptr,
+        int* sem_var_ptr, int secret_index) {
+    if(sem_trywait(semaphore_ptr)!= 0) {printf("ret\n"); return;}
+    *sem_var_ptr = secret_index;
+    sem_post(semaphore_ptr);
 }
 
 /*
@@ -29,17 +29,17 @@ void attack_func(/*pthread_mutex_t* lock_ptr,*/
  * Attack:   lock_index=0   secret_index={iterate through SECRET}
  */
 char victim_func(int secret_index) {
-    //pthread_mutex_t lock;
-    //pthread_mutex_init(&lock, FLAG);
-    int lock_var;
+    sem_t semaphore;
+    sem_init(&semaphore, 0, SEM_COUNT);
+    int sem_var;
 
-    //pthread_mutex_lock(&lock);
-    lock_var = 0;
+    sem_wait(&semaphore);
+    sem_var = 0;
 
-    attack_func(/*&lock,*/ &lock_var, secret_index);
-    char s = SECRET[lock_var];
-    //pthread_mutex_unlock(&lock);
-    //pthread_mutex_destroy(&lock);
+    attack_func(&semaphore, &sem_var, secret_index);
+    char s = SECRET[sem_var];
+    sem_post(&semaphore);
+    sem_destroy(&semaphore);
     return s;
 }
 

