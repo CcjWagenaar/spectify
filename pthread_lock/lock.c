@@ -19,7 +19,6 @@
 #define DBG         0
 
 #define FLAG PTHREAD_MUTEX_DEFAULT
-//#define FLAG PTHREAD_MUTEX_ADAPTIVE_NP
 
 cp_t* flush_reload_arr;
 

