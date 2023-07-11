@@ -78,7 +78,6 @@ static inline int* reload(cp_t *arr, int N_PAGES, int CACHE_HIT) {
         int t = (int)time_mem_load(&arr[i]);
         times[i] = t;
 
-
     }
     for(int i = 0; i < N_PAGES; i++) {
         int t = times[i];
