@@ -12,17 +12,12 @@ import sys
 import re
 from datetime import datetime
 
-#command = "ls -al"
-#make clean && make && ./bcb | grep -a "grep_repetitions" |  cut -d ' ' -f 2
-
-#print(sub.run(shlex.split(command), stdout=sub.PIPE).stdout.decode('utf-8'))
 DBG = False
 PROG_REPETITIONS = 9
 stdout_backup = sys.stdout
 
 dirs  = ["uninitialized_read","bounds_check_bypass", "buffer_overflow", "use_after_free",  "pthread_lock", "semaphore"]
 progs = ["uninit_read","bcb", "overflow", "use_after_free", "lock", "semaphore"]
-#progs = ["uninit_read"]
 
 if not path.exists("data"):
     print("created data directory")
@@ -40,8 +35,6 @@ print("starting first program...")
 for prog_index in range(0, len(progs)):
     dir = dirs[prog_index]
     prog = progs[prog_index]
-
-
 
     if not path.exists(dir):
         print(f"ERROR: Missing directory {dir}")
@@ -98,13 +91,6 @@ for prog_index in range(0, len(progs)):
             print(f"    total_accuracy_percentage       = {total_accuracy_percentage_list[prog_repetition]}")
             print(f"    bytes_per_second                = {bytes_per_second_list[prog_repetition]}")
             print(f"    leaked_bytes_per_second         = {leaked_bytes_per_second_list[prog_repetition]}")
-
-
-
-        #str = os.system(command2)
-        #print(sub.run(command, stdout=sub.PIPE, shell=True).stdout.decode('utf-8'))
-        #command = shlex.split(f"./{prog}")
-        #print(sub.run(command, stdout=sub.PIPE, shell=True).stdout.decode('utf-8'))
 
 
     avg_measured_time               = avg(measured_time_list)

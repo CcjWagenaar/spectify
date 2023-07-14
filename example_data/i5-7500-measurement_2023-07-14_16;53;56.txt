@@ -1,0 +1,114 @@
+
+Results of repeating uninit_read 9 times:
+    secret                          = mysecret
+    secret_size                     = 9
+    repetitions                     = 10000
+    avg_measured_time               = 48.406919		seconds
+    sum_measured_time               = 435.662274		seconds
+    sum_total_bytes                 = 810000		bytes attempted to leak
+    avg_median_accuracy             = 9.0		average result accuracy
+    sum_total_accuracy              = 809695		bytes leaked in total
+    avg_total_accuracy              = 89966.111111	bytes leaked on average/run
+    avg_median_accuracy_percentage  = 100.0%		correct result
+    avg_total_accuracy_percentage   = 99.962346%	accuracy of all attempts
+    avg_bytes_per_second            = 1860.359027	bytes per second
+    avg_leaked_bytes_per_second     = 1859.673227	correctly leaked bytes/second
+                                                        (leakage rate)
+
+
+
+
+Results of repeating bcb 9 times:
+    secret                          = mysecret
+    secret_size                     = 9
+    repetitions                     = 10000
+    avg_measured_time               = 47.546516		seconds
+    sum_measured_time               = 427.918646		seconds
+    sum_total_bytes                 = 810000		bytes attempted to leak
+    avg_median_accuracy             = 9.0		average result accuracy
+    sum_total_accuracy              = 809695		bytes leaked in total
+    avg_total_accuracy              = 89966.111111	bytes leaked on average/run
+    avg_median_accuracy_percentage  = 100.0%		correct result
+    avg_total_accuracy_percentage   = 99.962346%	accuracy of all attempts
+    avg_bytes_per_second            = 1892.935834	bytes per second
+    avg_leaked_bytes_per_second     = 1892.223244	correctly leaked bytes/second
+                                                        (leakage rate)
+
+
+
+
+Results of repeating overflow 9 times:
+    secret                          = mysecret
+    secret_size                     = 9
+    repetitions                     = 10000
+    avg_measured_time               = 47.486433		seconds
+    sum_measured_time               = 427.377896		seconds
+    sum_total_bytes                 = 810000		bytes attempted to leak
+    avg_median_accuracy             = 9.0		average result accuracy
+    sum_total_accuracy              = 809694		bytes leaked in total
+    avg_total_accuracy              = 89966.0	bytes leaked on average/run
+    avg_median_accuracy_percentage  = 100.0%		correct result
+    avg_total_accuracy_percentage   = 99.962222%	accuracy of all attempts
+    avg_bytes_per_second            = 1895.302111	bytes per second
+    avg_leaked_bytes_per_second     = 1894.585975	correctly leaked bytes/second
+                                                        (leakage rate)
+
+
+
+
+Results of repeating use_after_free 9 times:
+    secret                          = mysecret
+    secret_size                     = 9
+    repetitions                     = 10000
+    avg_measured_time               = 47.925564		seconds
+    sum_measured_time               = 431.330075		seconds
+    sum_total_bytes                 = 810000		bytes attempted to leak
+    avg_median_accuracy             = 9.0		average result accuracy
+    sum_total_accuracy              = 809892		bytes leaked in total
+    avg_total_accuracy              = 89988.0	bytes leaked on average/run
+    avg_median_accuracy_percentage  = 100.0%		correct result
+    avg_total_accuracy_percentage   = 99.986667%	accuracy of all attempts
+    avg_bytes_per_second            = 1877.928036	bytes per second
+    avg_leaked_bytes_per_second     = 1877.677734	correctly leaked bytes/second
+                                                        (leakage rate)
+
+
+
+
+Results of repeating lock 9 times:
+    secret                          = mysecret
+    secret_size                     = 9
+    repetitions                     = 10000
+    avg_measured_time               = 47.522944		seconds
+    sum_measured_time               = 427.706493		seconds
+    sum_total_bytes                 = 810000		bytes attempted to leak
+    avg_median_accuracy             = 9.0		average result accuracy
+    sum_total_accuracy              = 809712		bytes leaked in total
+    avg_total_accuracy              = 89968.0	bytes leaked on average/run
+    avg_median_accuracy_percentage  = 100.0%		correct result
+    avg_total_accuracy_percentage   = 99.964444%	accuracy of all attempts
+    avg_bytes_per_second            = 1893.833807	bytes per second
+    avg_leaked_bytes_per_second     = 1893.159935	correctly leaked bytes/second
+                                                        (leakage rate)
+
+
+
+
+Results of repeating semaphore 9 times:
+    secret                          = mysecret
+    secret_size                     = 9
+    repetitions                     = 10000
+    avg_measured_time               = 47.617535		seconds
+    sum_measured_time               = 428.557819		seconds
+    sum_total_bytes                 = 810000		bytes attempted to leak
+    avg_median_accuracy             = 9.0		average result accuracy
+    sum_total_accuracy              = 804203		bytes leaked in total
+    avg_total_accuracy              = 89355.888889	bytes leaked on average/run
+    avg_median_accuracy_percentage  = 100.0%		correct result
+    avg_total_accuracy_percentage   = 99.284321%	accuracy of all attempts
+    avg_bytes_per_second            = 1890.072509	bytes per second
+    avg_leaked_bytes_per_second     = 1876.546773	correctly leaked bytes/second
+                                                        (leakage rate)
+
+
+
