@@ -3,8 +3,6 @@
 #################################
 #   RUN FROM ROOT DIR: spectify #
 #################################
-
-import shlex
 import subprocess as sub
 import os
 from os import path
@@ -13,7 +11,7 @@ import re
 from datetime import datetime
 
 DBG = False
-PROG_REPETITIONS = 9
+PROG_REPETITIONS = 1
 stdout_backup = sys.stdout
 
 dirs  = ["uninitialized_read","bounds_check_bypass", "buffer_overflow", "use_after_free",  "pthread_lock", "semaphore"]
@@ -63,7 +61,7 @@ for prog_index in range(0, len(progs)):
 
         command = f"make clean && make && ./{prog}"
         #command = f"make clean && make && gdb {prog} -ex 'r' -ex 'q'"   #run in GDB, prevents uninit_read crashes
-        output = sub.check_output(command, shell=True).decode("utf-8")
+        output = sub.check_output(command, shell=True).decode("utf-8", errors='replace')
         # print(output)
 
         repetitions_list[prog_repetition]               = int(  re.search('.*grep_repetitions.*'               , output).group(0).partition(' ')[2])
