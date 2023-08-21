@@ -1,4 +1,4 @@
-# Project's Title
+# Project Title
 Spectify: Transforming Regular Vulnerabilities into Spectre Vulnerabilities
 
 # Project Description
